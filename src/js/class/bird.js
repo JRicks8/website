@@ -1,4 +1,5 @@
-import { loadImageGroup } from "./image-loader.js";
+import { CircleCollider } from "../physics/circle-collider.js";
+import { loadImageGroup } from "../util/image-loader.js";
 
 const animations = new Map();
 
@@ -10,25 +11,32 @@ animations.set('idle', {
   frames: [
     {
       image: images[0],
-      hold: 10
+      hold: 1000
     }
   ],
 });
 
 export class Bird {
+  circleCollider = new CircleCollider();
+
   position = { x: 0, y: 0 };
-  size = { x: 64, y: 64 };
+  drawSize = { x: 64, y: 64 };
 
   frameIndex = 0;
   animation = animations.get('idle');
   holdForFrames = this.animation.frames[this.frameIndex].hold;
+
+  constructor() {
+    this.circleCollider.size.r = 30;
+  }
 
   /**
    * Performs logic calculations that are done on every frame.
    * @param {number} dt - Delta Time (The time elapsed since the last frame in ms)
    */
   update(dt) {
-
+    this.position.x = this.circleCollider.position.x;
+    this.position.y = this.circleCollider.position.y;
   }
 
   /**
@@ -53,7 +61,7 @@ export class Bird {
 
     const img = this.animation?.frames[this.frameIndex].image;
     if (img) {
-      ctx.drawImage(img, this.position.x, this.position.y, this.size.x, this.size.y);
+      ctx.drawImage(img, this.position.x, this.position.y, this.drawSize.x, this.drawSize.y);
     }
   }
 

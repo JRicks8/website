@@ -7,6 +7,7 @@ const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
 tickManager.setCallback((dt) => {
+  bird.update(dt);
   bird.draw(ctx);
 });
 
