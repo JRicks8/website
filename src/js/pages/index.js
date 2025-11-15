@@ -3,6 +3,9 @@ import tickManager from "../tick-manager.js";
 
 const bird = new Bird();
 
+/** @type {HTMLCanvasElement} */
+// @ts-ignore
+const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 

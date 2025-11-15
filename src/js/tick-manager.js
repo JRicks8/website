@@ -1,9 +1,12 @@
-var callback = () => {};
+/** @type {(dt: number) => void} dt */
+let callback = (dt) => {};
 let paused = true;
 
 let last = 0;
-function step(now) {
+/** Performs a single tick cycle. */
+function step() {
   if (paused) return;
+  const now = Date.now();
   const dt = now - last;
   last = now;
 
@@ -14,14 +17,23 @@ function step(now) {
 
 /** Manages the tick cycle and invokes the provided callback on each window animation frame */
 export default {
+  /** Unpauses and starts the tick cycle. */
   start() {
     paused = false;
+    last = Date.now();
     window.requestAnimationFrame(step);
   },
+
+  /** Prevents the tick cycle from continuing. */
   pause() {
     paused = true;
   },
+
+  /**
+   * Sets the callback to be invoked on each tick cycle.
+   * @param {(dt: number) => void} newCallback 
+   */
   setCallback(newCallback) {
     callback = newCallback;
   }
-}
+};

@@ -1,3 +1,5 @@
+import { GameObject } from "../game/game-object.js";
+import { Vector2 } from "../math/vector.js";
 import { CircleCollider } from "../physics/circle-collider.js";
 import { loadImageGroup } from "../util/image-loader.js";
 
@@ -16,10 +18,9 @@ animations.set('idle', {
   ],
 });
 
-export class Bird {
+export class Bird extends GameObject {
   circleCollider = new CircleCollider();
 
-  position = { x: 0, y: 0 };
   drawSize = { x: 64, y: 64 };
 
   frameIndex = 0;
@@ -27,6 +28,7 @@ export class Bird {
   holdForFrames = this.animation.frames[this.frameIndex].hold;
 
   constructor() {
+    super();
     this.circleCollider.size.r = 30;
   }
 

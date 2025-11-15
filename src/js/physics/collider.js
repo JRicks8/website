@@ -1,9 +1,10 @@
-export class Collider {
-  type;
-  position = { x: 0, y: 0 };
-  velocity = { x: 0, h: 0 };
-  mass = 1;
-  kinematic = false;
+import { COMP_COLLIDER, Component } from "../game/component.js";
+import { Vector2 } from "../math/vector.js";
+
+/** @abstract */
+export class Collider extends Component {
+  colliderType;
+  position = new Vector2(0, 0);
   size = {};
 
   get rect() {
@@ -11,8 +12,10 @@ export class Collider {
     return { x0: 0, y0: 0, x1: 0, y1: 0 };
   };
 
-  constructor(type) {
-    this.type = type;
+  /** @param {string} colliderType */
+  constructor(colliderType) {
+    super(COMP_COLLIDER);
+    this.colliderType = colliderType;
   }
 
   /**
@@ -26,4 +29,12 @@ export class Collider {
     const r1 = other.rect;
     return r0.x1 >= r1.x0 && r1.x1 >= r0.x0 && r0.x1 >= r1.y0 && r1.y1 >= r0.y0;
   }
+
+  /** 
+   * Draws this collider to the screen.
+   * @abstract
+   * @param {CanvasRenderingContext2D} ctx - The target drawing context
+   * @param {string} [color] - The color of the collider.
+   */
+  draw(ctx, color = 'green') {}
 }
