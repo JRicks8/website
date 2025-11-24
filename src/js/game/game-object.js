@@ -1,29 +1,38 @@
-import { Vector2 } from "../math/vector.js";
+import { Vector3 } from "../math/vector3.js";
 import { Component } from "./component.js";
 
 export class GameObject {
-  position = new Vector2();
-
+  /** @type {GameObject} */
+  parent;
+  position = new Vector3();
   /** @type {number} */
-  rotation = 0;
-
-  size = new Vector2(1, 1);
-
+  orientation = 0;
+  size = new Vector3(1, 1);
   /** @type {Component[]} */
   components = [];
-
-  /** @type {GameObject[]} */
-  children = [];
+  /** @type {Set<GameObject>} */
+  children = new Set();
 
   constructor() {}
 
   /**
+   * Sets the parent of this GameObject.
+   * @param {GameObject} parent 
+   */
+  setParent(parent) {
+    this.parent = parent;
+    this.parent.children.add(this);
+  }
+
+  /**
    * Adds the specified component to this GameObject.
-   * @param {Component} component
-   * @returns {Component} - Returns the added component
+   * @template T
+   * @param {T & Component} component
+   * @returns {T & Component} Returns the added component
    */
   addComponent(component) {
     this.components.push(component);
+    component.gameObject = this;
     return component;
   }
 
@@ -48,14 +57,16 @@ export class GameObject {
   /**
    * Removes the specified component from this GameObject.
    * @param {Component} component
-   * @returns {Component | undefined} The removed component, or undefined if the component does not exist 
-   * on this GameObject.
+   * @returns {boolean} Whether the component was successfully removed or not.
    */
   removeComponent(component) {
     const i = this.components.findIndex(c => c === component);
     if (i >= 0) {
-      return this.components.splice(i, 1).at(0);
+      component.gameObject = undefined;
+      this.components.splice(i, 1).at(0);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -67,7 +78,9 @@ export class GameObject {
   removeComponentOfType(componentType) {
     const i = this.components.findIndex(c => c.componentType === componentType);
     if (i >= 0) {
-      return this.components.splice(i, 1).at(0);
+      const component = this.components.splice(i, 1).at(0);
+      component.gameObject = undefined;
+      return component;
     }
   }
 }

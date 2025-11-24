@@ -1,11 +1,14 @@
-import { COMP_COLLIDER, Component } from "../game/component.js";
-import { Vector2 } from "../math/vector.js";
+import { Vector2 } from "../math/vector2.js";
+import { RigidbodyComponent } from "./rigidbody.js";
 
-/** @abstract */
-export class Collider extends Component {
+/** @constant @default */
+export const COMP_COLLIDER = 'Collider2D';
+
+export class Collider {
+  /** @type {RigidbodyComponent} */
+  rigidbody;
   colliderType;
-  position = new Vector2(0, 0);
-  size = {};
+  offset = new Vector2();
 
   get rect() {
     console.warn('getter: "rect" should be overridden.');
@@ -14,7 +17,6 @@ export class Collider extends Component {
 
   /** @param {string} colliderType */
   constructor(colliderType) {
-    super(COMP_COLLIDER);
     this.colliderType = colliderType;
   }
 

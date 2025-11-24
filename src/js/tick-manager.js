@@ -7,7 +7,7 @@ let last = 0;
 function step() {
   if (paused) return;
   const now = Date.now();
-  const dt = now - last;
+  const dt = (now - last) / 1000;
   last = now;
 
   callback(dt);

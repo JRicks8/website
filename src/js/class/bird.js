@@ -1,8 +1,24 @@
 import { GameObject } from "../game/game-object.js";
-import { Vector2 } from "../math/vector.js";
+import { Vector2 } from "../math/vector2.js";
 import { CircleCollider } from "../physics/circle-collider.js";
+import { RigidbodyComponent } from "../physics/rigidbody.js";
 import { loadImageGroup } from "../util/image-loader.js";
 
+/**
+ * @typedef {Object} Frame
+ * @property {HTMLImageElement} image
+ * @property {number} hold
+ */
+
+/** 
+ * @typedef {Object} Animation
+ * @property {string} name
+ * @property {boolean} loop
+ * @property {Animation} [nextAnim]
+ * @property {Frame[]} frames
+ */
+
+/** @type {Map<string, Animation>} */
 const animations = new Map();
 
 const images = loadImageGroup('assets/bird/idle/', 'bird_idle', 1);
@@ -19,9 +35,10 @@ animations.set('idle', {
 });
 
 export class Bird extends GameObject {
-  circleCollider = new CircleCollider();
+  rigidbodyComponent = this.addComponent(new RigidbodyComponent());
 
-  drawSize = { x: 64, y: 64 };
+  drawSize = new Vector2(64, 64);
+  drawColliders = true;
 
   frameIndex = 0;
   animation = animations.get('idle');
@@ -29,7 +46,9 @@ export class Bird extends GameObject {
 
   constructor() {
     super();
-    this.circleCollider.size.r = 30;
+    const coll = new CircleCollider();
+    coll.radius = 30;
+    this.rigidbodyComponent.collider = coll;
   }
 
   /**
@@ -37,8 +56,8 @@ export class Bird extends GameObject {
    * @param {number} dt - Delta Time (The time elapsed since the last frame in ms)
    */
   update(dt) {
-    this.position.x = this.circleCollider.position.x;
-    this.position.y = this.circleCollider.position.y;
+    this.position.x = this.rigidbodyComponent.position.x;
+    this.position.y = this.rigidbodyComponent.position.y;
   }
 
   /**
@@ -63,10 +82,19 @@ export class Bird extends GameObject {
 
     const img = this.animation?.frames[this.frameIndex].image;
     if (img) {
-      ctx.drawImage(img, this.position.x, this.position.y, this.drawSize.x, this.drawSize.y);
+      const drawPosition = Vector2.subtract(this.position, Vector2.divide(this.drawSize, 2));
+      ctx.drawImage(img, drawPosition.x, drawPosition.y, this.drawSize.x, this.drawSize.y);
+    }
+
+    if (this.drawColliders) {
+      this.rigidbodyComponent.collider.draw(ctx);
     }
   }
 
+  /**
+   * Sets the animation to the given animation name.
+   * @param {string} name 
+   */
   setAnimation(name) {
     this.animation = animations.get(name);
   }

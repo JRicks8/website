@@ -1,10 +1,11 @@
-/** @constant @default */
-export const COMP_COLLIDER = 'Collider2D';
-/** @constant @default */
-export const COMP_RIGIDBODY = 'Rigidbody2D';
+import { GameObject } from "./game-object.js";
 
-/** @abstract */
+/** 
+ * @abstract
+ **/
 export class Component {
+  /** @type {GameObject} */
+  gameObject;
   componentType;
 
   /** @param {string} componentType */
