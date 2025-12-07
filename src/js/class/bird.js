@@ -1,4 +1,6 @@
 import { GameObject } from "../game/game-object.js";
+import { Matrix3x3 } from "../math/matrix3x3.js";
+import { Quaternion } from "../math/quaternion.js";
 import { Vector2 } from "../math/vector2.js";
 import { CircleCollider } from "../physics/circle-collider.js";
 import { RigidbodyComponent } from "../physics/rigidbody.js";
@@ -82,8 +84,13 @@ export class Bird extends GameObject {
 
     const img = this.animation?.frames[this.frameIndex].image;
     if (img) {
-      const drawPosition = Vector2.subtract(this.position, Vector2.divide(this.drawSize, 2));
+      ctx.save();
+      ctx.translate(this.position.x, this.position.y);
+      const angles = Quaternion.toEulerAngles(this.rigidbodyComponent.orientation);
+      ctx.rotate(angles.z);
+      const drawPosition = Vector2.divide(this.drawSize, -2);
       ctx.drawImage(img, drawPosition.x, drawPosition.y, this.drawSize.x, this.drawSize.y);
+      ctx.restore();
     }
 
     if (this.drawColliders) {

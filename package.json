@@ -1,7 +1,17 @@
 {
-  "name": "vanilla-basic",
-  "version": "1.0.0",
-  "scripts": { 
-    "start": "sirv ./src public --cors --single --no-clear --port 8000"
+  "name": "jared-website",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "sirv ./src public --cors --single --no-clear --port 8000",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "vite": "^7.2.6"
   }
 }

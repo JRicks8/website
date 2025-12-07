@@ -1,4 +1,5 @@
 import { Matrix3x3 } from "../math/matrix3x3.js";
+import { Quaternion } from "../math/quaternion.js";
 import { Vector2 } from "../math/vector2.js";
 import { Vector3 } from "../math/vector3.js";
 import { Collider } from "./collider.js";
@@ -36,7 +37,7 @@ export class CircleCollider extends Collider {
     ctx.arc(circleMiddle.x, circleMiddle.y, this.radius, 0, 2 * Math.PI);
 
     ctx.moveTo(circleMiddle.x, circleMiddle.y);
-    const dir = Vector2.fromAngle(Matrix3x3.toEulerAngles(this.rigidbody.orientation).z);
+    const dir = Vector2.fromAngle(Quaternion.toEulerAngles(this.rigidbody.orientation).z);
     dir.multiply(this.radius);
     dir.x += this.rigidbody.position.x;
     dir.y += this.rigidbody.position.y;
