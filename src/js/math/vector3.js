@@ -22,12 +22,17 @@ export class Vector3 {
 
   /**
    * @static
-   * @param {Vector3} v1
-   * @param {Vector3} v2
+   * @param {Vector3[]} vectors
    * @returns {Vector3}
    */
-  static addv3(v1, v2) {
-    return new Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+  static addv3(...vectors) {
+    const res = new Vector3();
+    vectors.forEach(v => {
+      res.x += v.x;
+      res.y += v.y;
+      res.z += v.z;
+    });
+    return res;
   }
 
   /**
@@ -61,6 +66,30 @@ export class Vector3 {
   }
 
   /**
+   * @static
+   * @param {Vector3} v1
+   * @param {Vector3} v2
+   * @returns {number}
+   */
+  static dot(v1, v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+  }
+
+  /**
+   * @static
+   * @param {Vector3} v1
+   * @param {Vector3} v2
+   * @returns {Vector3}
+   */
+  static cross(v1, v2) {
+    return new Vector3(
+      v1.y * v2.z - v1.z * v2.y,
+      v1.x * v2.y - v1.y * v2.x,
+      v1.z * v2.x - v1.x * v2.z
+    );
+  }
+
+  /**
    * Performs the star operation.
    * @see https://en.wikipedia.org/wiki/Infinitesimal_rotation_matrix
    * @param {Vector3} v 
@@ -90,7 +119,7 @@ export class Vector3 {
   }
 
   get normalized() {
-    const m = this.magnitude;
+    const m = this.magnitude || 1;
     return new Vector3(this.x / m, this.y / m, this.z / m);
   }
 
@@ -148,7 +177,7 @@ export class Vector3 {
    * Normalizes this vector, such that the magnitude equals 1.
    */
   normalize() {
-    const m = this.magnitude;
+    const m = this.magnitude || 1;
     this.x /= m;
     this.y /= m;
     this.z /= m;

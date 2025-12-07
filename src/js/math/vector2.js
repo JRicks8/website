@@ -66,7 +66,7 @@ export class Vector2 {
   }
 
   get normalized() {
-    const m = this.magnitude;
+    const m = this.magnitude || 1;
     return new Vector2(this.x / m, this.y / m);
   }
 
@@ -93,7 +93,7 @@ export class Vector2 {
    * Normalizes this vector, such that the magnitude equals 1.
    */
   normalize() {
-    const m = this.magnitude;
+    const m = this.magnitude || 1;
     this.x /= m;
     this.y /= m;
   }

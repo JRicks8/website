@@ -1,5 +1,6 @@
 import { Component } from "../game/component.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
+import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
 import { Collider } from "./collider.js";
 
@@ -16,7 +17,6 @@ export class RigidbodyComponent extends Component {
 
   /** @param {Collider} c */
   set collider(c) {
-    console.log('set!');
     if (this._collider) this._collider.rigidbody = undefined;
     this._collider = c;
     if (c) c.rigidbody = this;
@@ -30,12 +30,13 @@ export class RigidbodyComponent extends Component {
 
   // State variables
   position = new Vector3();
-  orientation = Matrix3x3.identity();
+  orientation = new Quaternion();
   momentum = new Vector3();
   angularMomentum = new Vector3();
 
   // Derived quantities
   iInv = new Matrix3x3();
+  rMatrix = new Matrix3x3();
   velocity = new Vector3();
   angularVelocity = new Vector3();
 
@@ -59,6 +60,15 @@ export class RigidbodyComponent extends Component {
   addLinearForce(f) {
     if (this.kinematic || this.static) return;
     this.force.addv3(f);
+  }
+
+  /**
+   * Applies a torque (f) to this rigidbody.
+   * @param {Vector3} f 
+   */
+  addTorque(f) {
+    if (this.kinematic || this.static) return;
+    this.torque.addv3(f);
   }
   
   /**
@@ -86,16 +96,21 @@ export class RigidbodyComponent extends Component {
     // Calculate velocities
     this.velocity = Vector3.divide(this.momentum, this.mass);
 
-    const rT = Matrix3x3.copy(this.orientation);
+    this.rMatrix = Quaternion.toMatrix(this.orientation);
+
+    const rT = Matrix3x3.copy(this.rMatrix);
     rT.transpose();
-    this.iInv = Matrix3x3.multiplyMatrix(Matrix3x3.multiplyMatrix(this.orientation, rT), this.iBodyInv);
+    this.iInv = Matrix3x3.multiplyMatrix(Matrix3x3.multiplyMatrix(this.rMatrix, rT), this.iBodyInv);
 
     this.angularVelocity = Matrix3x3.multiplyVector3(this.iInv, this.angularMomentum);
 
     // Apply velocities to spatial state
     this.position.addv3(Vector3.multiply(this.velocity, dt));
-    const star = Vector3.star(this.angularVelocity);
-    this.orientation.addMatrix(Matrix3x3.multiplyMatrix(star, this.orientation));
+
+    const deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...this.angularVelocity), this.orientation);
+    deltaOrientation.multiplyScalar(0.5 * dt);
+    this.orientation.add(deltaOrientation);
+    this.orientation.normalize();
   }
 
   computeInertia() {
