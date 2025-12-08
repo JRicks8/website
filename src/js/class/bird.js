@@ -1,10 +1,9 @@
 import { GameObject } from "../game/game-object.js";
-import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
 import { Vector2 } from "../math/vector2.js";
 import { CircleCollider } from "../physics/circle-collider.js";
 import { RigidbodyComponent } from "../physics/rigidbody.js";
-import { loadImageGroup } from "../util/image-loader.js";
+import bird_idle from "../../assets/bird/idle/bird_idle_0.png";
 
 /**
  * @typedef {Object} Frame
@@ -23,14 +22,16 @@ import { loadImageGroup } from "../util/image-loader.js";
 /** @type {Map<string, Animation>} */
 const animations = new Map();
 
-const images = loadImageGroup('assets/bird/idle/', 'bird_idle', 1);
+// const images = loadImageGroup('assets/bird/idle/', 'bird_idle', 1);
+const image = new Image();
+image.src = bird_idle;
 
 animations.set('idle', {
   name: 'idle',
   loop: true,
   frames: [
     {
-      image: images[0],
+      image: image,
       hold: 1000
     }
   ],
