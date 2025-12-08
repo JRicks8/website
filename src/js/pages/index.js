@@ -1,26 +1,26 @@
-import * as THREE from "three";
 import { Bird } from "../class/bird.js";
 import { PhysicsWorld } from "../physics/physics-world.js";
 import tickManager from "../tick-manager.js";
-import { createSpriteFromImage, resizeRenderView } from "../util/three-utils.js";
+import { resizeRenderView } from "../util/three-utils.js";
 
 import bird_idle from "../../assets/bird/idle/bird_idle_0.png";
+import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 
 // threejs init
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
+const camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
 camera.position.z = 1;
 
-const scene = new THREE.Scene();
+const scene = new Scene();
 
-const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-const material = new THREE.MeshNormalMaterial();
+const geometry = new BoxGeometry(0.2, 0.2, 0.2);
+const material = new MeshNormalMaterial();
 
-const mesh = new THREE.Mesh(geometry, material);
+const mesh = new Mesh(geometry, material);
 mesh.position.x = 0.5;
 
 scene.add(mesh);
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 document.body.appendChild(renderer.domElement);
