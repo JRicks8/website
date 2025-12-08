@@ -9,9 +9,8 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-  },
   "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.7",
     "vite": "^7.2.6"
   }
 }
