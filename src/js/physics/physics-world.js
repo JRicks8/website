@@ -6,7 +6,7 @@ import { RigidbodyComponent } from "./rigidbody.js";
 export class PhysicsWorld {
   /** @type {RigidbodyComponent[]} */
   rigidbodies = [];
-  gravity = new Vector3(0, 9.8, 0);
+  gravity = new Vector3(0, -0.01, 0);
 
   /**
    * Move forward in the physics simulation for time t = dt
