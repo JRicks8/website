@@ -1,13 +1,15 @@
 import { GameObject } from "../game/game-object.js";
-import { Quaternion } from "../math/quaternion.js";
 import { Vector2 } from "../math/vector2.js";
 import { CircleCollider } from "../physics/circle-collider.js";
 import { RigidbodyComponent } from "../physics/rigidbody.js";
+import { Scene } from "three";
+import { createSpriteFromImage } from "../util/three-utils.js";
+
 import bird_idle from "../../assets/bird/idle/bird_idle_0.png";
 
 /**
  * @typedef {Object} Frame
- * @property {HTMLImageElement} image
+ * @property {Vector2} offset
  * @property {number} hold
  */
 
@@ -22,16 +24,12 @@ import bird_idle from "../../assets/bird/idle/bird_idle_0.png";
 /** @type {Map<string, Animation>} */
 const animations = new Map();
 
-// const images = loadImageGroup('assets/bird/idle/', 'bird_idle', 1);
-const image = new Image();
-image.src = bird_idle;
-
 animations.set('idle', {
   name: 'idle',
   loop: true,
   frames: [
     {
-      image: image,
+      offset: new Vector2(),
       hold: 1000
     }
   ],
@@ -40,12 +38,8 @@ animations.set('idle', {
 export class Bird extends GameObject {
   rigidbodyComponent = this.addComponent(new RigidbodyComponent());
 
-  drawSize = new Vector2(64, 64);
-  drawColliders = true;
-
-  frameIndex = 0;
-  animation = animations.get('idle');
-  holdForFrames = this.animation.frames[this.frameIndex].hold;
+  sprite = createSpriteFromImage(bird_idle);
+  spriteOffset = new Vector2(0, 0);
 
   constructor() {
     super();
@@ -61,49 +55,34 @@ export class Bird extends GameObject {
   update(dt) {
     this.position.x = this.rigidbodyComponent.position.x;
     this.position.y = this.rigidbodyComponent.position.y;
+
+    this.sprite.position.set(this.position.x, this.position.y, 0);
   }
 
   /**
    * Draws this bird in the specified context.
    * @param {CanvasRenderingContext2D} ctx 
    */
-  draw(ctx) {
-    if (!this.animation) return;
-
-    if (this.holdForFrames <= 0) {
-      this.frameIndex++;
-      if (this.frameIndex >= this.animation.frames.length) {
-        this.frameIndex = 0;
-        if (!this.animation.loop) {
-          this.animation = this.animation.nextAnim;
-        }
-      }
-      this.holdForFrames = this.animation?.frames[this.frameIndex].hold;
-    } else {
-      this.holdForFrames--;
-    }
-
-    const img = this.animation?.frames[this.frameIndex].image;
-    if (img) {
-      ctx.save();
-      ctx.translate(this.position.x, this.position.y);
-      const angles = Quaternion.toEulerAngles(this.rigidbodyComponent.orientation);
-      ctx.rotate(angles.z);
-      const drawPosition = Vector2.divide(this.drawSize, -2);
-      ctx.drawImage(img, drawPosition.x, drawPosition.y, this.drawSize.x, this.drawSize.y);
-      ctx.restore();
-    }
-
-    if (this.drawColliders) {
-      this.rigidbodyComponent.collider.draw(ctx);
-    }
-  }
+  // draw(ctx) {
+  //   if (this.holdForFrames <= 0) {
+  //     this.frameIndex++;
+  //     if (this.frameIndex >= this.animation.frames.length) {
+  //       this.frameIndex = 0;
+  //       if (!this.animation.loop) {
+  //         this.animation = this.animation.nextAnim;
+  //       }
+  //     }
+  //     this.holdForFrames = this.animation?.frames[this.frameIndex].hold;
+  //   } else {
+  //     this.holdForFrames--;
+  //   }
+  // }
 
   /**
-   * Sets the animation to the given animation name.
-   * @param {string} name 
+   * Adds this bird's sprite to the three.js scene
+   * @param {Scene} scene 
    */
-  setAnimation(name) {
-    this.animation = animations.get(name);
+  addToScene(scene) {
+    scene.add(this.sprite);
   }
 }

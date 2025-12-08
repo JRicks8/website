@@ -1,37 +1,29 @@
+import * as THREE from "three";
 import { Bird } from "../class/bird.js";
 import { PhysicsWorld } from "../physics/physics-world.js";
 import tickManager from "../tick-manager.js";
+import { createSpriteFromImage, resizeRenderView } from "../util/three-utils.js";
 
-// Window state init
-
-/** @type {HTMLCanvasElement} */
-// @ts-ignore
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+import bird_idle from "../../assets/bird/idle/bird_idle_0.png";
 
 // threejs init
-// const camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
-// camera.position.z = 1;
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
+camera.position.z = 1;
 
-// const scene = new Scene();
+const scene = new THREE.Scene();
 
-// const geometry = new BoxGeometry(0.2, 0.2, 0.2);
-// const material = new MeshNormalMaterial();
+const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+const material = new THREE.MeshNormalMaterial();
 
-// const mesh = new Mesh(geometry, material);
+const mesh = new THREE.Mesh(geometry, material);
+mesh.position.x = 0.5;
 
-// scene.add(mesh);
+scene.add(mesh);
 
-// const renderer = new WebGLRenderer();
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// renderer.setAnimationLoop(animate);
-// document.body.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-// function animate(time) {
-//   mesh.rotation.x = time / 2000;
-//   mesh.rotation.y = time / 1000;
-//   renderer.render(scene, camera);
-// }
+document.body.appendChild(renderer.domElement);
 
 // Game state init
 tickManager.start();
@@ -45,37 +37,23 @@ window.addEventListener('blur', () => {
   tickManager.pause();
 });
 
-function resizeCanvas() {
-  canvas.setAttribute('width', window.innerWidth.toString());
-  canvas.setAttribute('height', window.innerHeight.toString());
-  ctx.imageSmoothingEnabled = false;
-}
-
 window.addEventListener('resize', () => {
-  resizeCanvas();
-  // resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
+  resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
 });
-// resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
-resizeCanvas();
+resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
 
 // // Game Init
-const bird1 = new Bird();
-bird1.rigidbodyComponent.position.x = canvas.width * 0.33;
-bird1.rigidbodyComponent.position.y = 100;
-const bird2 = new Bird();
-bird2.rigidbodyComponent.position.x = canvas.width * 0.66;
-bird2.rigidbodyComponent.position.y = 100;
+const bird = new Bird();
+bird.sprite.scale.set(0.2, 0.2, 0.2);
+bird.addToScene(scene);
 
 const world = new PhysicsWorld();
-world.rigidbodies.push(bird1.rigidbodyComponent, bird2.rigidbodyComponent);
+world.rigidbodies.push(bird.rigidbodyComponent);
 
 tickManager.setCallback((dt) => {
   world.step(dt);
 
-  bird1.update(dt);
-  bird2.update(dt); 
+  bird.update(dt);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  bird1.draw(ctx);
-  bird2.draw(ctx);
+  renderer.render(scene, camera);
 });
