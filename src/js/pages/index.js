@@ -1,10 +1,9 @@
-import { Bird } from "../class/bird.js";
+import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 import { PhysicsWorld } from "../physics/physics-world.js";
 import tickManager from "../tick-manager.js";
 import { resizeRenderView } from "../util/three-utils.js";
-
-import bird_idle from "../../assets/bird/idle/bird_idle_0.png";
-import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { DraggableShape } from "../game/draggable-shape.js";
+import { COMP_RIGIDBODY, RigidbodyComponent } from "../physics/rigidbody.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
@@ -42,18 +41,24 @@ window.addEventListener('resize', () => {
 });
 resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
 
-// // Game Init
-const bird = new Bird();
-bird.sprite.scale.set(0.2, 0.2, 0.2);
-bird.addToScene(scene);
-
+// Game Init
 const world = new PhysicsWorld();
-world.rigidbodies.push(bird.rigidbodyComponent);
+
+const box = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
+scene.add(box.mesh);
+{
+  /** @type {RigidbodyComponent} */
+  const boxRb = box.getComponent(COMP_RIGIDBODY);
+  boxRb.collider.visible = true;
+  world.rigidbodies.push(boxRb);
+  scene.add(boxRb.collider.mesh);
+}
 
 tickManager.setCallback((dt) => {
+  console.log(dt);
   world.step(dt);
 
-  bird.update(dt);
+  box.update(dt);
 
   renderer.render(scene, camera);
 });

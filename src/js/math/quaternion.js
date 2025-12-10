@@ -94,6 +94,19 @@ export class Quaternion {
     this.z = z;
   }
 
+  /**
+   * @param {number} w 
+   * @param {number} x 
+   * @param {number} y 
+   * @param {number} z 
+   */
+  set(w, x, y, z) {
+    this.w = w;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
   /** @param {Quaternion} q */
   add(q) {
     this.w += q.w;

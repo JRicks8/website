@@ -12,4 +12,7 @@ export class Component {
   constructor(componentType) {
     this.componentType = componentType;
   }
+
+  /** @param {number} dt */
+  update(dt) {}
 }

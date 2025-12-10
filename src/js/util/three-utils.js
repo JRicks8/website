@@ -1,5 +1,4 @@
 import { PerspectiveCamera, Scene, Sprite, SpriteMaterial, TextureLoader, WebGLRenderer } from "three";
-import { GameObject } from "../game/game-object.js";
 
 /**
  * Resizes the given three.js renderer and camera to match the given size.
@@ -11,14 +10,6 @@ import { GameObject } from "../game/game-object.js";
 export function resizeRenderView(renderer, camera, sizeX, sizeY) {
   renderer.setSize(sizeX, sizeY);
   camera.aspect = sizeX / sizeY;
-}
-
-/**
- * @param {Scene} scene 
- * @param {GameObject} gameObject 
- */
-export function addSpriteToScene(scene, gameObject) {
-
 }
 
 /**

@@ -1,3 +1,4 @@
+import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
 import { Component } from "./component.js";
 
@@ -5,8 +6,8 @@ export class GameObject {
   /** @type {GameObject} */
   parent;
   position = new Vector3();
-  /** @type {number} */
-  orientation = 0;
+  /** @type {Quaternion} */
+  orientation = new Quaternion();
   size = new Vector3(1, 1);
   /** @type {Component[]} */
   components = [];
@@ -14,6 +15,9 @@ export class GameObject {
   children = new Set();
 
   constructor() {}
+
+  /** @param {number} dt */
+  update(dt) {}
 
   /**
    * Sets the parent of this GameObject.
@@ -39,7 +43,7 @@ export class GameObject {
   /**
    * Gets the first component with the given component type.
    * @param {string} componentType 
-   * @returns {Component | undefined} The matching component, or undefined if there is no matching component.
+   * @returns {any} The matching component, or undefined if there is no matching component.
    */
   getComponent(componentType) {
     return this.components.find(c => c.componentType === componentType);
