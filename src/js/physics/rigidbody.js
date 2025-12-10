@@ -1,14 +1,15 @@
 import { Component } from "../game/component.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
+import { Quaternion as ThreeQuaternion } from "three";
 import { Vector3 } from "../math/vector3.js";
 import { Collider } from "./collider.js";
 
 /** @constant @default */
-export const COMP_RIGIDBODY = 'Rigidbody2D';
+export const COMP_RIGIDBODY = 'Rigidbody';
 
 export class RigidbodyComponent extends Component {
-  /** @type {Collider} */
+  /** @private @type {Collider} */
   _collider;
 
   get collider() {
@@ -17,9 +18,9 @@ export class RigidbodyComponent extends Component {
 
   /** @param {Collider} c */
   set collider(c) {
-    if (this._collider) this._collider.rigidbody = undefined;
+    if (this._collider) this._collider.parent = undefined;
     this._collider = c;
-    if (c) c.rigidbody = this;
+    if (c) c.parent = this;
   }
 
   // Constant quantities
@@ -50,7 +51,16 @@ export class RigidbodyComponent extends Component {
 
   constructor() {
     super(COMP_RIGIDBODY);
+    this._collider = new Collider();
     this.computeInertia();
+  }
+
+  update(dt) {
+    this.gameObject.position.set(this.position.x, this.position.y, this.position.z);
+    this.gameObject.orientation.set(this.orientation.w, this.orientation.x, this.orientation.y, this.orientation.z);
+    
+    this._collider.mesh.position.set(this.position.x, this.position.y, this.position.z);
+    this._collider.mesh.setRotationFromQuaternion(new ThreeQuaternion(this.orientation.x, this.orientation.y, this.orientation.z, this.orientation.w));
   }
 
   /**

@@ -136,6 +136,17 @@ export class Vector3 {
   }
 
   /**
+   * @param {number} x 
+   * @param {number} y 
+   * @param {number} z 
+   */
+  set(x, y, z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
+  /**
    * Adds the components of v to this vector.
    * @param {Vector3} v 
    */
