@@ -4,6 +4,9 @@ import { Quaternion } from "../math/quaternion.js";
 import { Quaternion as ThreeQuaternion } from "three";
 import { Vector3 } from "../math/vector3.js";
 import { Collider } from "./collider.js";
+import { BodyState } from "./body-state.js";
+
+let idCounter = 0;
 
 /** @constant @default */
 export const COMP_RIGIDBODY = 'Rigidbody';
@@ -23,44 +26,33 @@ export class RigidbodyComponent extends Component {
     if (c) c.parent = this;
   }
 
-  // Constant quantities
-  mass = 1;
-  
+  id;
+
+  bodyState = new BodyState();
+  cachedState = new BodyState();
+
   iBody = new Matrix3x3();
-  iBodyInv = new Matrix3x3();
-
-  // State variables
-  position = new Vector3();
-  orientation = new Quaternion();
-  momentum = new Vector3();
-  angularMomentum = new Vector3();
-
-  // Derived quantities
-  iInv = new Matrix3x3();
-  rMatrix = new Matrix3x3();
-  velocity = new Vector3();
-  angularVelocity = new Vector3();
-
-  // Computed quantities
-  force = new Vector3();
-  torque = new Vector3();
 
   // properties
-  kinematic = false;
-  static = false;
+  /** Ignored during collision checks */
+  noCollide = false;
+  /** True if no forces should act on this object (velocities can still be set) */
+  noForces = false;
 
   constructor() {
     super(COMP_RIGIDBODY);
+    this.id = idCounter++;
     this._collider = new Collider();
     this.computeInertia();
   }
 
+  /** @param {number} dt */
   update(dt) {
-    this.gameObject.position.set(this.position.x, this.position.y, this.position.z);
-    this.gameObject.orientation.set(this.orientation.w, this.orientation.x, this.orientation.y, this.orientation.z);
+    this.gameObject.position.set(this.bodyState.position.x, this.bodyState.position.y, this.bodyState.position.z);
+    this.gameObject.orientation.set(this.bodyState.orientation.w, this.bodyState.orientation.x, this.bodyState.orientation.y, this.bodyState.orientation.z);
     
-    this._collider.mesh.position.set(this.position.x, this.position.y, this.position.z);
-    this._collider.mesh.setRotationFromQuaternion(new ThreeQuaternion(this.orientation.x, this.orientation.y, this.orientation.z, this.orientation.w));
+    this._collider.mesh.position.set(this.bodyState.position.x, this.bodyState.position.y, this.bodyState.position.z);
+    this._collider.mesh.setRotationFromQuaternion(new ThreeQuaternion(this.bodyState.orientation.x, this.bodyState.orientation.y, this.bodyState.orientation.z, this.bodyState.orientation.w));
   }
 
   /**
@@ -68,8 +60,7 @@ export class RigidbodyComponent extends Component {
    * @param {Vector3} f 
    */
   addLinearForce(f) {
-    if (this.kinematic || this.static) return;
-    this.force.addv3(f);
+    this.bodyState.force.addv3(f);
   }
 
   /**
@@ -77,8 +68,7 @@ export class RigidbodyComponent extends Component {
    * @param {Vector3} f 
    */
   addTorque(f) {
-    if (this.kinematic || this.static) return;
-    this.torque.addv3(f);
+    this.bodyState.torque.addv3(f);
   }
   
   /**
@@ -87,7 +77,7 @@ export class RigidbodyComponent extends Component {
    * @param {number} m 
    */
   setMass(m) {
-    this.mass = m;
+    this.bodyState.mass = m;
     this.computeInertia();
   }
 
@@ -96,41 +86,66 @@ export class RigidbodyComponent extends Component {
    * @param {number} dt 
    */
   step(dt) {
-    // Apply primitive forces
-    this.momentum.addv3(this.force);
-    this.force = new Vector3();
+    this.cachedState = { ...this.bodyState };
 
-    this.angularMomentum.addv3(this.torque);
-    this.torque = new Vector3();
+    if (!this.noForces) {
+      // Apply primitive forces
+      this.bodyState.momentum.addv3(this.bodyState.force);
+      this.bodyState.angularMomentum.addv3(this.bodyState.torque);
+      
+      // Calculate velocities
+      this.bodyState.velocity = Vector3.divide(this.bodyState.momentum, this.bodyState.mass);
 
-    // Calculate velocities
-    this.velocity = Vector3.divide(this.momentum, this.mass);
+      this.bodyState.rMatrix = Quaternion.toMatrix(this.bodyState.orientation);
 
-    this.rMatrix = Quaternion.toMatrix(this.orientation);
+      const rT = Matrix3x3.copy(this.bodyState.rMatrix);
+      rT.transpose();
+      this.bodyState.iInv = Matrix3x3.multiplyMatrix(Matrix3x3.multiplyMatrix(this.bodyState.rMatrix, rT), this.bodyState.iBodyInv);
 
-    const rT = Matrix3x3.copy(this.rMatrix);
-    rT.transpose();
-    this.iInv = Matrix3x3.multiplyMatrix(Matrix3x3.multiplyMatrix(this.rMatrix, rT), this.iBodyInv);
-
-    this.angularVelocity = Matrix3x3.multiplyVector3(this.iInv, this.angularMomentum);
+      this.bodyState.angularVelocity = Matrix3x3.multiplyVector3(this.bodyState.iInv, this.bodyState.angularMomentum);
+    } else {
+      // With no forces being applied, the momentum is dictated by the velocity instead
+      this.bodyState.momentum = Vector3.multiply(this.bodyState.velocity, this.bodyState.mass);
+      // TODO ;o;
+      // this.bodyState.angularMomentum = ;
+    }
 
     // Apply velocities to spatial state
-    this.position.addv3(Vector3.multiply(this.velocity, dt));
+    this.bodyState.position.addv3(Vector3.multiply(this.bodyState.velocity, dt));
 
-    const deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...this.angularVelocity), this.orientation);
+    const deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...this.bodyState.angularVelocity), this.bodyState.orientation);
     deltaOrientation.multiplyScalar(0.5 * dt);
-    this.orientation.add(deltaOrientation);
-    this.orientation.normalize();
+    this.bodyState.orientation.add(deltaOrientation);
+    this.bodyState.orientation.normalize();
+
+    // Zero-out the forces
+    this.bodyState.force = new Vector3();
+    this.bodyState.torque = new Vector3();
+  }
+
+  /** @param {number} dt */
+  stepFromLastState(dt) {
+    this.bodyState = { ...this.cachedState };
+    
+    this.step(dt);
   }
 
   computeInertia() {
     if (this._collider) {
       // TODO Compute inertia based on collider
-      this.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * this.mass);
+      this.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * this.bodyState.mass);
     } else {
-      this.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * this.mass);
+      this.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * this.bodyState.mass);
     }
-    this.iBodyInv = Matrix3x3.copy(this.iBody);
-    this.iBodyInv.invert();
+    this.bodyState.iBodyInv = Matrix3x3.copy(this.iBody);
+    this.bodyState.iBodyInv.invert();
+  }
+
+  /**
+   * @param {Vector3} point 
+   * @returns {Vector3} The velocity of a point relative to this body's position
+   */
+  velocityAtPoint(point) {
+    return Vector3.addv3(this.bodyState.velocity, Vector3.cross(this.bodyState.angularVelocity, Vector3.subtract(point, this.bodyState.position)));
   }
 }

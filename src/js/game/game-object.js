@@ -87,4 +87,6 @@ export class GameObject {
       return component;
     }
   }
+
+  destroy() {}
 }
