@@ -1,4 +1,4 @@
-import { RigidbodyComponent } from "./rigidbody.js"
+import { RigidbodyComponent } from "../game/components/rigidbody.js"
 
 /**
  * Extremely simple and inefficient check, where every object 

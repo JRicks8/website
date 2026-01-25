@@ -2,7 +2,8 @@ import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Sc
 import { PhysicsWorld } from "../physics/physics-world.js";
 import { getMouseCoordsFromPixel, resizeRenderView } from "../util/three-utils.js";
 import { DraggableShape } from "../game/draggable-shape.js";
-import { COMP_RIGIDBODY, RigidbodyComponent } from "../physics/rigidbody.js";
+import { COMP_RIGIDBODY, RigidbodyComponent } from "../game/components/rigidbody.js";
+import { Component } from "../game/components/component.js";
 import tickManager from "../tick-manager.js";
 import eventDispatcher from "../event-dispatcher.js";
 import gameState from "../game/game-state.js";
@@ -90,15 +91,15 @@ const world = new PhysicsWorld();
 const box = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
 scene.add(box.mesh);
 {
-  /** @type {RigidbodyComponent} */
-  const boxRb = box.getComponent(COMP_RIGIDBODY);
+  const boxRb = box.rigidbodyComponent;
   boxRb.collider.visible = true;
-  world.rigidbodies.push(boxRb);
+  world.addBody(boxRb);
   scene.add(boxRb.collider.mesh);
 }
 
 tickManager.setCallback((dt) => {
   world.step(dt);
+  world.update();
 
   box.update(dt);
 

@@ -1,6 +1,6 @@
 import { BoxGeometry, BufferGeometry, Mesh, MeshBasicMaterial } from "three";
 import { Vector3 } from "../math/vector3.js";
-import { RigidbodyComponent } from "./rigidbody.js";
+import { RigidbodyComponent } from "../game/components/rigidbody.js";
 
 export const COLLIDER_BOX = 'BoxCollider';
 export const COLLIDER_SPHERE = 'SphereCollider';
