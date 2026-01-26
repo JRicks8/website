@@ -44,7 +44,10 @@ export class PhysicsWorld {
    */
   step(dt) {
     this._bodies.forEach(body => {
-      body.addLinearForce(this.gravity);
+      /** @type {Transform} */
+      const t = body.entity.getComponent(COMP_TRANSFORM);
+      body.bodyState.position.setv3(t.position);
+      body.bodyState.orientation.setv4(t.orientation)
     });
 
     physicsProcess.step(dt, this._bodies);
@@ -58,9 +61,7 @@ export class PhysicsWorld {
       /** @type {Transform} */
       const t = body.entity.getComponent(COMP_TRANSFORM);
       if (!t) continue;
-
-      console.log(t.position.y);
-
+      
       t.position.set(body.bodyState.position.x, body.bodyState.position.y, body.bodyState.position.z);
       t.orientation.set(body.bodyState.orientation.w, body.bodyState.orientation.x, body.bodyState.orientation.y, body.bodyState.orientation.z);
       

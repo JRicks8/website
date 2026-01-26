@@ -107,6 +107,16 @@ export class Quaternion {
     this.z = z;
   }
 
+  /**
+   * @param {Quaternion} q
+   */
+  setv4(q) {
+    this.w = q.w;
+    this.x = q.x;
+    this.y = q.y;
+    this.z = q.z;
+  }
+
   /** @param {Quaternion} q */
   add(q) {
     this.w += q.w;

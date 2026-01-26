@@ -79,7 +79,7 @@ export default {
     
     const maybeColliding = broadPhaseSolver.solve(bodies);
     if (maybeColliding.length > 0) {
-      console.log(maybeColliding);
+      // console.log(maybeColliding);
     }
     const contacts = narrowPhaseSolver.solve(maybeColliding);
   }

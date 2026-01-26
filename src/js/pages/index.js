@@ -16,14 +16,6 @@ gameState.mainCamera = camera;
 const scene = new Scene();
 gameState.scene = scene;
 
-const geometry = new BoxGeometry(0.2, 0.2, 0.2);
-const material = new MeshNormalMaterial();
-
-const mesh = new Mesh(geometry, material);
-mesh.position.x = 0.5;
-
-scene.add(mesh);
-
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -88,10 +80,21 @@ window.addEventListener('wheel', onWheel);
 // Game Init
 const world = new PhysicsWorld();
 
-const box = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
-scene.add(box.mesh);
+const box1 = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
+box1.transform.position.x = -0.2;
+scene.add(box1.mesh);
 {
-  const boxRb = box.rigidbodyComponent;
+  const boxRb = box1.rigidbodyComponent;
+  boxRb.collider.visible = true;
+  world.addBody(boxRb);
+  scene.add(boxRb.collider.mesh);
+}
+
+const box2 = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
+box2.transform.position.x = 0.2;
+scene.add(box2.mesh);
+{
+  const boxRb = box2.rigidbodyComponent;
   boxRb.collider.visible = true;
   world.addBody(boxRb);
   scene.add(boxRb.collider.mesh);
@@ -101,7 +104,8 @@ tickManager.setCallback((dt) => {
   world.step(dt);
   world.update();
 
-  box.update(dt);
+  box1.update(dt);
+  box2.update(dt);
 
   renderer.render(scene, camera);
 });

@@ -8,8 +8,6 @@ export class Entity {
   children = new Set();
   destroyed = false;
 
-  constructor() {}
-
   /**
    * Adds the specified component to this GameObject.
    * @template T
