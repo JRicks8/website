@@ -1,7 +1,7 @@
 import { Box3, BoxGeometry, BufferGeometry, Color, Material, Mesh, MeshPhongMaterial, Raycaster, Quaternion as ThreeQuaternion, Vector3 as ThreeV3, Vector2 as ThreeV2 } from "three";
 import { Entity } from "./entity.js";
 import { RigidbodyComponent } from "./components/rigidbody.js";
-import eventDispatcher from "../event-dispatcher.js";
+import eventDispatcher from "../event/event-dispatcher.js";
 import gameState from "./game-state.js";
 import { getMouseCoordsFromPixel } from "../util/three-utils.js";
 import { Vector3 } from "../math/vector3.js";

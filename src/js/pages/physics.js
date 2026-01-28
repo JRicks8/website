@@ -2,8 +2,8 @@ import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Sc
 import { PhysicsWorld } from "../physics/physics-world.js";
 import { getMouseCoordsFromPixel, resizeRenderView } from "../util/three-utils.js";
 import { DraggableShape } from "../game/draggable-shape.js";
-import tickManager from "../tick-manager.js";
-import eventDispatcher from "../event-dispatcher.js";
+import tickManager from "../event/tick-manager.js";
+import eventDispatcher from "../event/event-dispatcher.js";
 import gameState from "../game/game-state.js";
 
 // threejs init
