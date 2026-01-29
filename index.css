@@ -8,15 +8,23 @@
 
 * {
   transition: color 1s, background-color 1s;
+  font-family: RobotoLight, sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans
 }
 
 body {
   width: calc(100vw - 32px);
   height: calc(100vh - 32px);
   margin: 16px;
+  background-color: var(--secondary-light-color);
 }
 
 main {
+  text-align: center;
+  padding: 16px;
+  width: stretch;
+  height: stretch;
+  overflow-y: auto;
+  border-radius: 8px;
   background-color: var(--primary-color);
 }
 
@@ -24,9 +32,31 @@ h1, h2, h3, h4, h5, h6, p, span {
   color: var(--text-color);
 }
 
+p {
+  font-size: 18px;
+}
+
+svg, g, path {
+  fill: var(--border-color);
+}
+
 button:hover {
   cursor: pointer;
   filter: brightness(90%);
+}
+
+.main-borders {
+  z-index: 5;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: stretch;
+  height: stretch;
+  margin: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: transparent;
 }
 
 .border {
@@ -60,16 +90,6 @@ button:hover {
   left: 0;
   width: 16px;
   height: 100vh;
-}
-
-main {
-  text-align: center;
-  padding: 16px;
-  border: 2px solid var(--border-color);
-  width: stretch;
-  height: stretch;
-  overflow-y: auto;
-  border-radius: 8px;
 }
 
 .sidebar {

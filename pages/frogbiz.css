@@ -1,0 +1,16 @@
+.frog-biz-wrapper {
+	width:100%;
+	height:100%;
+}
+
+#frog-biz-content {
+	position:absolute;
+	left:40%;
+	top:30%;
+}
+
+#frog-biz-loadingscreen {
+	position:absolute;
+	left:40%;
+	top:30%;
+}
