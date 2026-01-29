@@ -1,5 +1,5 @@
 import { Vector3 } from "../math/vector3.js";
-import { RigidbodyComponent } from "./rigidbody.js";
+import { RigidbodyComponent } from "../game/components/rigidbody.js";
 
 export class Contact {
   /** 

@@ -1,6 +1,6 @@
 import { BufferGeometry } from "three";
 import { Contact } from "./contact.js";
-import { RigidbodyComponent } from "./rigidbody.js";
+import { RigidbodyComponent } from "../game/components/rigidbody.js";
 import { Vector3 } from "../math/vector3.js";
 
 export class NarrowPhaseSolver {

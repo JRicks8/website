@@ -1,12 +1,13 @@
 import { Box3, BoxGeometry, BufferGeometry, Color, Material, Mesh, MeshPhongMaterial, Raycaster, Quaternion as ThreeQuaternion, Vector3 as ThreeV3, Vector2 as ThreeV2 } from "three";
-import { GameObject } from "./game-object.js";
-import { RigidbodyComponent } from "../physics/rigidbody.js";
-import eventDispatcher from "../event-dispatcher.js";
+import { Entity } from "./entity.js";
+import { RigidbodyComponent } from "./components/rigidbody.js";
+import eventDispatcher from "../event/event-dispatcher.js";
 import gameState from "./game-state.js";
 import { getMouseCoordsFromPixel } from "../util/three-utils.js";
 import { Vector3 } from "../math/vector3.js";
+import { Transform } from "./components/transform.js";
 
-export class DraggableShape extends GameObject {
+export class DraggableShape extends Entity {
   /** 
    * @private
    * @type {Mesh} 
@@ -28,6 +29,8 @@ export class DraggableShape extends GameObject {
   dragged = false;
   dragStartDistance = 0;
 
+  /** @type {Transform} */
+  transform;
   /** @type {RigidbodyComponent} */
   rigidbodyComponent;
   
@@ -37,6 +40,8 @@ export class DraggableShape extends GameObject {
    */
   constructor(geometry = new BoxGeometry(), material = new MeshPhongMaterial({ color: new Color(0, 0.5, 1) })) {
     super();
+    this.transform = this.addComponent(new Transform(this, null));
+
     this.rigidbodyComponent = this.addComponent(new RigidbodyComponent());
     this.rigidbodyComponent.collider.setGeometry(geometry);
 
@@ -62,16 +67,14 @@ export class DraggableShape extends GameObject {
 
       const speed = 2;
       this.rigidbodyComponent.bodyState.velocity.set(
-        (desiredPos.x - this.position.x) * speed,
-        (desiredPos.y - this.position.y) * speed,
-        (desiredPos.z - this.position.z) * speed
+        (desiredPos.x - this.transform.position.x) * speed,
+        (desiredPos.y - this.transform.position.y) * speed,
+        (desiredPos.z - this.transform.position.z) * speed
       );
     }
 
-    this.components.forEach(comp => comp.update(dt));
-
-    this._mesh.position.set(this.position.x, this.position.y, this.position.z);
-    this._mesh.setRotationFromQuaternion(new ThreeQuaternion(this.orientation.x, this.orientation.y, this.orientation.z, this.orientation.w));
+    this._mesh.position.set(this.transform.position.x, this.transform.position.y, this.transform.position.z);
+    this._mesh.setRotationFromQuaternion(new ThreeQuaternion(this.transform.orientation.x, this.transform.orientation.y, this.transform.orientation.z, this.transform.orientation.w));
   }
 
   /**
@@ -122,5 +125,6 @@ export class DraggableShape extends GameObject {
 
   destroy() {
     eventDispatcher.stopListening('objectclicked', this._objectClickedListener);
+    this.cleanup();
   }
 }
