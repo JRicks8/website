@@ -1,4 +1,4 @@
-import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, Vector2 as ThreeV2, WebGLRenderer } from "three";
+import { BoxGeometry, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, Vector2 as ThreeV2, WebGLRenderer } from "three";
 import { PhysicsWorld } from "../physics/physics-world.js";
 import { getMouseCoordsFromPixel, resizeRenderView } from "../util/three-utils.js";
 import { DraggableShape } from "../game/draggable-shape.js";
