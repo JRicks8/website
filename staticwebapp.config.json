@@ -1,15 +1,12 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html"
-  },
-  "routes": [
-    {
-      "route": "/pages/physics.html",
-      "methods": [
-        "get"
-      ],
-      "rewrite": "/pages/physics.html",
-      "statusCode": 200
-    }
-  ]
+    "rewrite": "/index.html",
+    "exclude": [
+      "/*.html",
+      "/*.css",
+      "/*.js",
+      "/*.png",
+      "/*.jpg"
+    ]
+  }
 }
