@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="./css/index.css">
   <title>Jared Ricks</title>
 </head>
 
@@ -18,8 +18,8 @@
     <h1>Hi!👋 I'm Jared</h1>
     <p>I'm a software engineer by trade, and I like programming. I also like game development.</p>
     <p>Here's some cool things I've made for the web:</p>
-    <p><a href="./pages/physics.html">Physics Simulation</a></p>
-    <p><a href="./pages/frogbiz.html">Frog Biz (Game)</a></p>
+    <p><a href="./physics.html">Physics Simulation</a></p>
+    <p><a href="./frogbiz.html">Frog Biz (Game)</a></p>
 
     <div class="sidebar">
       <button id="sidebarPicker" class="picker" onclick="onSidebarPickerClick()">
@@ -37,12 +37,12 @@
   </main>
 
 <script type="module">
-  import { onSidebarPickerClick, onSidebarMenuOptionClick, onSelectTheme } from "./src/js/pages/index.js";
+  import { onSidebarPickerClick, onSidebarMenuOptionClick, onSelectTheme } from "./js/pages/index.js";
   window.onSidebarPickerClick = onSidebarPickerClick;
   window.onSidebarMenuOptionClick = onSidebarMenuOptionClick;
   window.onSelectTheme = onSelectTheme;
 </script>
-<script type="module" src="./src/js/pages/index.js"></script>
+<script type="module" src="./js/pages/index.js"></script>
 </body>
 
 </html>

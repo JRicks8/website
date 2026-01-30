@@ -1,9 +1,11 @@
+// @ts-nocheck
 /**
  * ****************  WARNING !!! ****************
  * Ahead of you is truly terrible code! I wrote this 
  * When I was learning JavaScript (and just starting to code
  * in general). You have been warned!
  */
+/** @tsignoreall */
 
 // global variables
 const cv0 = document.getElementById('frog-biz-content');
