@@ -1,109 +1,115 @@
-import { BoxGeometry, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, Vector2 as ThreeV2, WebGLRenderer } from "three";
-import { PhysicsWorld } from "../physics/physics-world.js";
-import { getMouseCoordsFromPixel, resizeRenderView } from "../util/three-utils.js";
-import { DraggableShape } from "../game/draggable-shape.js";
-import tickManager from "../event/tick-manager.js";
-import eventDispatcher from "../event/event-dispatcher.js";
-import gameState from "../game/game-state.js";
+import { BoxGeometry, Layers, PerspectiveCamera, Raycaster, Scene, Vector2 as ThreeV2, WebGLRenderer } from "three";
+import { resizeRenderView } from "../projects/common/util/three-utils.js";
+import { GameState } from "../projects/common/game/game-state.js";
+import { TickProcess } from "../projects/common/processes/tick-process.js";
+import { EventDispatcher } from "../projects/common/event/event-dispatcher.js";
+import { buildDraggableBody } from "../projects/birds/factory/draggable-body-factory.js";
+import { Registry } from "../projects/common/game/register.js";
+import { COMP_MESH_RENDERER, MeshRendererComponent } from "../projects/common/components/mesh-renderer.js";
+import { COMP_TRANSFORM, TransformComponent } from "../projects/common/components/transform.js";
+import { MeshRenderingProcess } from "../projects/common/processes/mesh-rendering-process.js";
+import { PhysicsProcess } from "../projects/common/processes/physics-process.js";
+import { buildFlyingFPController } from "../projects/common/factory/player-controller-factory.js";
+import { InputListener } from "../projects/common/event/input-listener.js";
+import { COMP_PLAYER_CONTROLLER, PlayerControllerComponent } from "../projects/common/components/player-controller.js";
+import { PlayerProcess } from "../projects/common/processes/player-process.js";
+import { ComponentManager } from "../projects/common/game/component-manager.js";
+import { DraggableProcess } from "../projects/common/processes/draggable-process.js";
+import { ScriptProcess } from "../projects/common/processes/script-process.js";
+import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js";
+import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
+import { ColliderComponent, COMP_COLLIDER } from "../projects/common/components/collider.js";
 
 // threejs init
-const camera = new PerspectiveCamera(70, 16/9, 0.01, 10);
-camera.position.z = 1;
-gameState.mainCamera = camera;
+const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
+GameState.mainCamera = camera;
 
 const scene = new Scene();
-gameState.scene = scene;
+GameState.scene = scene;
 
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 document.body.appendChild(renderer.domElement);
 
-// Game state init
-tickManager.start();
+// Manage events ------------------------------------------------------------
+InputListener.attachListeners();
 
-// Manage events
-function onFocus() {
-  eventDispatcher.dispatchEvent('focus');
-  tickManager.start();
-}
-window.addEventListener('focus', onFocus);
+EventDispatcher.listenToEvent('focus', () => {
+  TickProcess.start();
+});
 
-function onBlur() {
-  eventDispatcher.dispatchEvent('blur');
-  tickManager.pause();
-}
-window.addEventListener('blur', onBlur);
+EventDispatcher.listenToEvent('blur', () => {
+  TickProcess.pause();
+});
   
-function onResize() {
-  eventDispatcher.dispatchEvent('resize');
-  resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
-}
-window.addEventListener('resize', onResize);
+EventDispatcher.listenToEvent('resize', () => resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight));
 resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
 
 const mouseRaycaster = new Raycaster();
-/** @param {PointerEvent} pointerEvent */
-function onMouseDown(pointerEvent) {
-  eventDispatcher.dispatchEvent('mousedown');
-
-  const point = getMouseCoordsFromPixel(pointerEvent.clientX, pointerEvent.clientY);
+EventDispatcher.listenToEvent('mousedown', (/**@type {MouseEvent}*/ mouseEvent) => {
+  const point = getMouseCoordsFromPixel(mouseEvent.clientX, mouseEvent.clientY);
   mouseRaycaster.setFromCamera(new ThreeV2(...point), camera);
+  mouseRaycaster.layers.disable(LAYER_IGNORE_ALL);
+  mouseRaycaster.layers.disable(LAYER_IGNORE_RAYCAST);
   const intersects = mouseRaycaster.intersectObjects(scene.children);
   if (intersects.length > 0) {
-    eventDispatcher.dispatchEvent('objectclicked', intersects.at(0));
+    EventDispatcher.dispatchEvent('objectclicked', intersects.at(0));
   }
-}
-window.addEventListener('mousedown', onMouseDown);
+});
 
-function onMouseUp() {
-  eventDispatcher.dispatchEvent('mouseup');
-}
-window.addEventListener('mouseup', onMouseUp);
+EventDispatcher.listenToEvent('mousemove', (/**@type {MouseEvent}*/ mouseEvent) => {
+  GameState.mousePosition.x = mouseEvent.clientX;
+  GameState.mousePosition.y = mouseEvent.clientY;
+});
 
-/** @param {PointerEvent} pointerEvent */
-function onMouseMove(pointerEvent) {
-  gameState.mousePosition.x = pointerEvent.clientX;
-  gameState.mousePosition.y = pointerEvent.clientY;
-  eventDispatcher.dispatchEvent('mousemove', pointerEvent);
-}
-window.addEventListener('mousemove', onMouseMove);
+// Game Setup ----------------------------------------------------------
+DraggableProcess.initialize(camera);
 
-/** @param {Event} event */
-function onWheel(event) {
-  eventDispatcher.dispatchEvent('wheel', event);
-}
-window.addEventListener('wheel', onWheel);
+// PhysicsProcess.globalConstantForce.y = -9.81;
 
-// Game Init
-const world = new PhysicsWorld();
+Registry.setContext('physics');
 
-const box1 = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
-box1.transform.position.x = -0.2;
-scene.add(box1.mesh);
+const b1 = buildDraggableBody(Registry.getUniqueId());
+Registry.register(b1, b1.id);
 {
-  const boxRb = box1.rigidbodyComponent;
-  boxRb.collider.visible = true;
-  world.addBody(boxRb);
-  scene.add(boxRb.collider.mesh);
+  /** @type {ColliderComponent} */
+  const collider = ComponentManager.getComponent(b1, COMP_COLLIDER);
+  scene.add(collider.colliderMesh);
+
+  /** @type {MeshRendererComponent} */
+  const meshRenderer = ComponentManager.getComponent(b1, COMP_MESH_RENDERER);
+  scene.add(meshRenderer.mesh);
+
+  /** @type {TransformComponent} */
+  const transform = ComponentManager.getComponent(b1, COMP_TRANSFORM);
+  transform.position.set(0, 0, -5);
 }
 
-const box2 = new DraggableShape(new BoxGeometry(0.2, 0.2, 0.2), new MeshNormalMaterial());
-box2.transform.position.x = 0.2;
-scene.add(box2.mesh);
-{
-  const boxRb = box2.rigidbodyComponent;
-  boxRb.collider.visible = true;
-  world.addBody(boxRb);
-  scene.add(boxRb.collider.mesh);
-}
+// Player setup -----------------------------------------------
+PlayerProcess.setup(scene, camera);
+const player = buildFlyingFPController(Registry.getUniqueId(), camera);
+/** @type {PlayerControllerComponent} */
+const playerController = ComponentManager.getComponent(player, COMP_PLAYER_CONTROLLER);
+Registry.register(player, player.id);
 
-tickManager.setCallback((dt) => {
-  world.step(dt);
-  world.update();
+// Game loop -------------------------------------------------
+TickProcess.setCallback((dt) => {
+  ScriptProcess.earlyUpdate(dt);
 
-  box1.update(dt);
-  box2.update(dt);
+  PlayerProcess.update(playerController, dt);
 
+  DraggableProcess.update();
+
+  PhysicsProcess.step(dt);
+  PhysicsProcess.update();
+
+  ScriptProcess.update(dt);
+
+  MeshRenderingProcess.update();
+
+  ScriptProcess.lateUpdate(dt);
   renderer.render(scene, camera);
 });
+TickProcess.setTickDuration(0);
+TickProcess.start();
