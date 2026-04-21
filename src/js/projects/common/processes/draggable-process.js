@@ -50,7 +50,9 @@ function startDragging(intersection) {
   }
 
   _dragging = true;
-  _dragStartDistance = Math.max(intersection.object.position.distanceTo(_camera.position), 0.5);
+  const cameraWorldPos = new ThreeV3();
+  _camera.getWorldPosition(cameraWorldPos)
+  _dragStartDistance = Math.max(_dragComponent.entity.transform.position.distanceTo(cameraWorldPos), 1);
 
   if (_wheelListener != null) EventDispatcher.stopListening('wheel', _wheelListener);
   _wheelListener = EventDispatcher.listenToEvent('wheel', (/**@type {WheelEvent}*/ wheelEvent) => {

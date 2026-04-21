@@ -281,4 +281,12 @@ export class Vector3 {
     const dz = this.z - v.z;
 		return dx * dx + dy * dy + dz * dz;
   }
+
+  /**
+   * Returns the distance between this vector and v.
+   * @param {Vector3Like} v 
+   */
+  distanceTo(v) {
+    return Math.sqrt(this.distanceToSquared(v));
+  }
 }
