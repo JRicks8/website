@@ -1,4 +1,4 @@
-import { Component } from "../components/component.js";
+import { Component } from "../components/class/component.js";
 
 export const COMP_SCRIPT = 'ScriptComponent';
 

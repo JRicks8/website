@@ -1,5 +1,5 @@
 import { Camera } from "three";
-import { Component } from "./component.js";
+import { Component } from "./class/component.js";
 
 export const COMP_PLAYER_CONTROLLER = 'PlayerController';
 

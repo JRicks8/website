@@ -1,4 +1,4 @@
-import { ColliderComponent, COMP_COLLIDER } from "../../components/collider.js";
+import { ColliderComponent, COMP_COLLIDER } from "../../components/class/collider.js";
 import { COMP_RIGIDBODY, RigidbodyComponent } from "../../components/rigidbody.js";
 import { ComponentManager } from "../../game/component-manager.js";
 import { Matrix3x3 } from "../../math/matrix3x3.js";

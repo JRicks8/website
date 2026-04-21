@@ -10,7 +10,7 @@ export class BroadPhaseSolver {
   /**
    * Returns pairs of bodies that may be colliding.
    * @param {RigidbodyComponent[]} bodies
-   * @returns {{ first: RigidbodyComponent, second: RigidbodyComponent }[]}
+   * @returns {{ r1: RigidbodyComponent, r2: RigidbodyComponent }[]}
    */
   solve(bodies) {
     for (const body of bodies) {
@@ -23,7 +23,7 @@ export class BroadPhaseSolver {
       for (let j = bodies.length - 1; j > i; j--) {
         // @ts-expect-error
         if (bodies[i].colliderComponent.colliderMesh.geometry.boundingBox.intersectsBox(bodies[j].colliderComponent.colliderMesh.geometry.boundingBox)) {
-          res.push({ first: bodies[i], second: bodies[j] });
+          res.push({ r1: bodies[i], r2: bodies[j] });
         }
       }
     }

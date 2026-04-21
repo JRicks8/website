@@ -1,5 +1,5 @@
-import { ColliderComponent } from "./collider.js";
-import { Component } from "./component.js";
+import { ColliderComponent } from "./class/collider.js";
+import { Component } from "./class/component.js";
 
 export const COMP_DRAGGABLE = 'Draggable';
 

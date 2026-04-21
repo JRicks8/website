@@ -1,5 +1,5 @@
 import { Mesh } from "three";
-import { Component } from "./component.js";
+import { Component } from "./class/component.js";
 
 export const COMP_MESH_RENDERER = 'MeshRenderer';
 

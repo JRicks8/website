@@ -1,6 +1,5 @@
 import { Camera } from "three";
 import { Entity } from "../class/entity.js";
-import { TransformComponent } from "../components/transform.js";
 import { PlayerControllerComponent } from "../components/player-controller.js";
 import { ComponentManager } from "../game/component-manager.js";
 
@@ -13,7 +12,6 @@ import { ComponentManager } from "../game/component-manager.js";
 export function buildFlyingFPController(id, camera) {
   const player = new Entity(id);
 
-  ComponentManager.addComponent(player, new TransformComponent());
   const playerController = ComponentManager.addComponent(player, new PlayerControllerComponent());
   playerController.camera = camera;
 

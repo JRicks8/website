@@ -1,8 +1,8 @@
-import { Entity } from "../class/entity.js";
+import { Entity } from "../../class/entity.js";
 
-// Base class for Components. Meant to be extended.
+/** Base class for Components. Meant to be extended. */
 export class Component {
-  /** @type {Entity | null} */
+  /** @type {?Entity} */
   entity = null;
   /** @type {string} */
   type;

@@ -1,7 +1,7 @@
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { BodyState } from "../physics/body-state.js";
-import { ColliderComponent } from "./collider.js";
-import { Component } from "./component.js";
+import { ColliderComponent } from "./class/collider.js";
+import { Component } from "./class/component.js";
 
 export const COMP_RIGIDBODY = 'Rigidbody';
 

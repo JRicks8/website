@@ -92,8 +92,7 @@ export const PhysicsProcess = {
     _cache = [];
     _bodies.forEach(body => {
       /** @type {TransformComponent} */
-      const t = ComponentManager.getComponent(body.entity, COMP_TRANSFORM);
-      if (t) body.bodyState.position.copy(t.position);
+      if (body.entity) body.bodyState.position.copy(body.entity.transform.position);
 
       // Apply global forces
       body.bodyState.force.addv3(this.globalConstantForce);
@@ -124,8 +123,8 @@ export const PhysicsProcess = {
       t.position.set(body.bodyState.position.x, body.bodyState.position.y, body.bodyState.position.z);
       t.orientation.set(body.bodyState.orientation.w, body.bodyState.orientation.x, body.bodyState.orientation.y, body.bodyState.orientation.z);
       
-      body.colliderComponent?.colliderMesh.position.set(body.bodyState.position.x, body.bodyState.position.y, body.bodyState.position.z);
-      body.colliderComponent?.colliderMesh.setRotationFromQuaternion(new ThreeQuaternion(body.bodyState.orientation.x, body.bodyState.orientation.y, body.bodyState.orientation.z, body.bodyState.orientation.w));
+      body.colliderComponent?.colliderMesh?.position.set(body.bodyState.position.x, body.bodyState.position.y, body.bodyState.position.z);
+      body.colliderComponent?.colliderMesh?.setRotationFromQuaternion(new ThreeQuaternion(body.bodyState.orientation.x, body.bodyState.orientation.y, body.bodyState.orientation.z, body.bodyState.orientation.w));
     }
   }
 }
