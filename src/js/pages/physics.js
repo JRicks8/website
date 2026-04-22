@@ -16,6 +16,8 @@ import { DraggableProcess } from "../projects/common/processes/draggable-process
 import { ScriptProcess } from "../projects/common/processes/script-process.js";
 import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js";
 import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
+import { DebugProcess } from "../projects/common/processes/debug-process.js";
+import { Vector3 } from "../projects/common/math/vector3.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
@@ -62,6 +64,7 @@ EventDispatcher.listenToEvent('mousemove', (/**@type {MouseEvent}*/ mouseEvent) 
 
 // Game Setup ----------------------------------------------------------
 DraggableProcess.initialize(camera);
+DebugProcess.initialize(scene);
 
 // PhysicsProcess.globalConstantForce.y = -9.81;
 
@@ -98,8 +101,10 @@ TickProcess.setCallback((dt) => {
 
   MeshRenderingProcess.update();
 
+  DebugProcess.beforeRender();
   ScriptProcess.lateUpdate(dt);
   renderer.render(scene, camera);
+  DebugProcess.afterRender(dt);
 });
 TickProcess.setTickDuration(0);
 TickProcess.start();
