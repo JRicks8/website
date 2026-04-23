@@ -276,9 +276,9 @@ export class Vector3 {
    * @param {Vector3Like} v 
    */
   distanceToSquared(v) {
-    const dx = this.x - v.x;
-    const dy = this.y - v.y;
-    const dz = this.z - v.z;
+    const dx = v.x - this.x;
+    const dy = v.y - this.y;
+    const dz = v.z - this.z;
 		return dx * dx + dy * dy + dz * dz;
   }
 

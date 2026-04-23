@@ -1,3 +1,4 @@
+import { BoxColliderComponent } from "../components/collider/box-collider.js";
 import { SphereColliderComponent } from "../components/collider/sphere-collider.js";
 import { Vector3 } from "../math/vector3.js";
 
@@ -11,14 +12,22 @@ export function sphereIntersectsSphere(s1, s2) {
   const dist = s1.entity.transform.position.distanceToSquared(s2.entity.transform.position);
   if (radii * radii >= dist) {
     const dirTo2 = Vector3.subtract(s2.entity.transform.position, s1.entity.transform.position).normalized;
-    const intersectionDistance = (Math.sqrt(dist) - radii) / 2;
-    const localPoint = Vector3.addv3(
+    return Vector3.addv3(
       Vector3.multiply(dirTo2, s1.geometry.parameters.radius),
-      Vector3.multiply(dirTo2, intersectionDistance)
+      Vector3.multiply(dirTo2, (Math.sqrt(dist) - radii) / 2),
+      s1.entity.transform.position
     );
-    return Vector3.addv3(localPoint, s1.entity.transform.position);
   }
   return null;
+}
+
+/**
+ * @param {BoxColliderComponent} b1
+ * @param {BoxColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two boxes are touching, or null if they are not touching.
+ */
+export function boxIntersectsBox(b1, b2) {
+  
 }
 
 export function triangleIntersectsTriangle() {

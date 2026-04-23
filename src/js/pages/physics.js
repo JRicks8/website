@@ -70,11 +70,11 @@ DebugProcess.initialize(scene);
 
 Registry.setContext('physics');
 
-const b1 = buildDraggableBody(Registry.getUniqueId(), scene);
+const b1 = buildDraggableBody(Registry.getUniqueId(), scene, 0.5);
 Registry.register(b1, b1.id);
 b1.transform.position.set(2, 0, -5);
 
-const b2 = buildDraggableBody(Registry.getUniqueId(), scene);
+const b2 = buildDraggableBody(Registry.getUniqueId(), scene, 2);
 Registry.register(b2, b2.id);
 b2.transform.position.set(-2, 0, -5);
 

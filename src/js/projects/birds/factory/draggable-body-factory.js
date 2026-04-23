@@ -13,16 +13,18 @@ import { SphereColliderComponent } from "../../common/components/collider/sphere
  * @optional @param {Scene | undefined} scene 
  * @returns {Entity}
  */
-export function buildDraggableBody(id, scene = undefined) {
+export function buildDraggableBody(id, scene = undefined, radius = 1) {
   const e = new Entity(id);
 
   const collider = ComponentManager.addComponent(e, new SphereColliderComponent());
+  collider.geometry = new SphereGeometry(radius);
+  collider.colliderMesh = new Mesh(collider.geometry, new MeshNormalMaterial({ wireframe: true }));
   scene?.add(collider.colliderMesh);
 
   ComponentManager.addComponent(e, new RigidbodyComponent());
   ComponentManager.addComponent(e, new DraggableComponent());
 
-  const mesh = new Mesh(new SphereGeometry(), new MeshNormalMaterial());
+  const mesh = new Mesh(new SphereGeometry(radius), new MeshNormalMaterial());
   const meshRenderer = ComponentManager.addComponent(e, new MeshRendererComponent(mesh));
   scene?.add(meshRenderer.mesh);
 
