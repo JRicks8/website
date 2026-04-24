@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "sirv ./src public --cors --single --no-clear --port 8000",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
