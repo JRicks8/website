@@ -5,7 +5,7 @@ import { COMP_DRAGGABLE, DraggableComponent } from "../components/draggable-body
 import { COMP_MESH_RENDERER, MeshRendererComponent } from "../components/mesh-renderer.js";
 import { COMP_PLAYER_CONTROLLER } from "../components/player-controller.js";
 import { COMP_RIGIDBODY, RigidbodyComponent } from "../components/rigidbody.js";
-import { computeInertia } from "../physics/util/physics-utils.js";
+import { computeInertia } from "../util/physics-utils.js";
 import { DraggableProcess } from "../processes/draggable-process.js";
 import { MeshRenderingProcess } from "../processes/mesh-rendering-process.js";
 import { PhysicsProcess } from "../processes/physics-process.js";

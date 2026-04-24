@@ -1,4 +1,5 @@
 import { Matrix3x3 } from "./matrix3x3.js";
+import { Quaternion } from "./quaternion.js";
 import { Vector2 } from "./vector2.js";
 
 /** 
@@ -108,6 +109,18 @@ export class Vector3 {
     return m;
   }
 
+  /**
+   * Rotates v by the quaternion q and returns a new Vector3 with the result.
+   * @see https://math.stackexchange.com/questions/40164/how-do-you-rotate-a-vector-by-a-unit-quaternion
+   * @param {Vector3Like} v
+   * @param {Quaternion} q 
+   * @returns {Vector3}
+   */
+  static rotate(v, q) {
+    return Quaternion.multiplyQuaternion(q, new Quaternion(0, v.x, v.y, v.z))
+      .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v;
+  }
+
   /** @type {number} */
   x;
 
@@ -209,12 +222,14 @@ export class Vector3 {
 
   /**
    * Adds the components of v to this vector.
-   * @param {Vector3Like} v 
+   * @param {Vector3Like[]} vectors
    */
-  addv3(v) {
-    this.x += v.x;
-    this.y += v.y;
-    this.z += v.z;
+  addv3(...vectors) {
+    vectors.forEach(v => {
+      this.x += v.x;
+      this.y += v.y;
+      this.z += v.z;
+    });
   }
 
   /**
@@ -239,6 +254,7 @@ export class Vector3 {
   /**
    * @param {number} n 
    * @param {number[]} ns
+   * @returns {this}
    */
   multiply(n, ...ns) {
     this.x *= n;
@@ -249,16 +265,19 @@ export class Vector3 {
       this.y *= m;
       this.z *= m;
     });
+    return this;
   }
 
   /**
    * Divides this vector by scalar n
    * @param {number} n 
+   * @returns {this}
    */
   divide(n) {
     this.x /= n;
     this.y /= n;
     this.z /= n;
+    return this;
   }
 
   /**
@@ -288,5 +307,18 @@ export class Vector3 {
    */
   distanceTo(v) {
     return Math.sqrt(this.distanceToSquared(v));
+  }
+
+  /**
+   * Rotates this vector by the quaternion q
+   * @param {Quaternion} q 
+   */
+  rotate(q) {
+    const qInv = new Quaternion(q.w, -q.x, -q.y, -q.z);
+    const res = Quaternion.multiplyQuaternion(q, new Quaternion(0, this.x, this.y, this.z))
+      .multiplyQuaternion(qInv);
+    this.x = res.x;
+    this.y = res.y;
+    this.z = res.z;
   }
 }

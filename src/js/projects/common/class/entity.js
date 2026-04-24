@@ -16,9 +16,7 @@ export class Entity {
   /** @type {{[type: string]: Component[]}} */
   components;
 
-  /**
-   * @param {number} id 
-   */
+  /** @param {number} id */
   constructor(id) {
     this.id = id;
     this.components = {};

@@ -1,4 +1,4 @@
-import { Camera, Raycaster, Vector3 as ThreeV3, Vector2 as ThreeV2 } from "three";
+import { Camera, Raycaster, Vector3 as ThreeV3, Vector2 as ThreeV2, Color } from "three";
 import { COMP_RIGIDBODY, RigidbodyComponent } from "../components/rigidbody.js";
 import { EventDispatcher } from "../event/event-dispatcher.js";
 import { Vector3 } from "../math/vector3.js";
@@ -6,6 +6,10 @@ import { GameState } from "../game/game-state.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { getMouseCoordsFromPixel } from "../util/window-utils.js";
 import { DraggableComponent } from "../components/draggable-body.js";
+import { getWorldPosition } from "../util/transform-utils.js";
+import { addForceAtPosition } from "../util/physics-utils.js";
+import { DebugProcess } from "./debug-process.js";
+import { Quaternion } from "../math/quaternion.js";
 
 /** @type {DraggableComponent[]} */
 const _bodies = [];
@@ -14,6 +18,8 @@ const _bodies = [];
 let _dragComponent = null;
 /** @type {RigidbodyComponent | null} */
 let _draggedRigidbody = null;
+/** @type {Vector3 | null} */
+let _localDragPoint = null;
 
 let _dragging = false;
 let _dragStartDistance = 0;
@@ -45,13 +51,13 @@ function startDragging(intersection) {
   }
 
   _draggedRigidbody = ComponentManager.getComponent(_dragComponent.entity, COMP_RIGIDBODY);
-  if (_draggedRigidbody) {
-    _draggedRigidbody.noForces = true;
-  }
 
   _dragging = true;
   const cameraWorldPos = new ThreeV3();
-  _camera.getWorldPosition(cameraWorldPos)
+  _camera.getWorldPosition(cameraWorldPos);
+
+  const worldDragPoint = intersection.point;
+  _localDragPoint = Vector3.subtract(worldDragPoint, getWorldPosition(_dragComponent.entity.transform));
   _dragStartDistance = Math.max(_dragComponent.entity.transform.position.distanceTo(cameraWorldPos), 1);
 
   if (_wheelListener != null) EventDispatcher.stopListening('wheel', _wheelListener);
@@ -100,8 +106,9 @@ export const DraggableProcess = {
     }
   },
 
-  update: () => {
-    if (!_dragging || !_dragComponent?.entity || !_camera) {
+  /** @param {number} dt */
+  update: (dt) => {
+    if (!_dragging || !_dragComponent?.entity || !_camera || !_localDragPoint) {
       return;
     }
 
@@ -111,18 +118,29 @@ export const DraggableProcess = {
     dummyRaycaster.setFromCamera(new ThreeV2(...coords), _camera);
     const desiredPos = new Vector3(...dummyRaycaster.ray.direction);
     desiredPos.multiply(_dragStartDistance);
+    const cameraWorldPos = new ThreeV3();
+    _camera.getWorldPosition(cameraWorldPos);
+    desiredPos.addv3(cameraWorldPos);
 
-    const worldPos = new ThreeV3();
-    _camera.getWorldPosition(worldPos);
-    
-    desiredPos.addv3(worldPos);
+    const rotatedPoint = Vector3.rotate(_localDragPoint, _dragComponent.entity.transform.orientation);
+
+    DebugProcess.drawPoint({ position: desiredPos, color: new Color(0xff0000) });
+    DebugProcess.drawPoint({ position: Vector3.addv3(_dragComponent.entity.transform.position, rotatedPoint) });
 
     if (_draggedRigidbody?.entity) {
-      _draggedRigidbody.bodyState.velocity.set(
+      const desiredVelocity = new Vector3(
         (desiredPos.x - _draggedRigidbody.entity.transform.position.x) * 2,
         (desiredPos.y - _draggedRigidbody.entity.transform.position.y) * 2,
         (desiredPos.z - _draggedRigidbody.entity.transform.position.z) * 2
       );
+      const difference = Vector3.subtract(desiredVelocity, _draggedRigidbody.bodyState.velocity);
+      const derivedForce = difference.multiply(_draggedRigidbody.bodyState.mass).divide(Math.max(dt, 0.0167));
+      addForceAtPosition(_draggedRigidbody, derivedForce, _localDragPoint);
+      /**
+       * v = (momentum * dt) / mass
+       * v * mass = momentum * dt
+       * (v * mass) / dt = momentum
+       */
     } else {
       _dragComponent.entity.transform.position.setv3(desiredPos);
     }

@@ -3,15 +3,23 @@ import { Vector3 } from "./vector3.js";
 
 export class Quaternion {
   /**
+   * @see https://en.wikipedia.org/wiki/Quaternion#Hamilton_product
    * @param {Quaternion} q1 
    * @param {Quaternion} q2 
    * @returns {Quaternion}
    */
   static multiplyQuaternion(q1, q2) {
-    const v1 = q1.v;
-    const v2 = q2.v;
-    const v = Vector3.addv3(Vector3.multiply(v2, q1.w), Vector3.multiply(v1, q2.w), Vector3.cross(v1, v2));
-    return new Quaternion(q1.w * q2.w - Vector3.dot(v1, v2), ...v);
+    const q1w = q1.w, q1x = q1.x, q1y = q1.y, q1z = q1.z;
+		const q2w = q2.w, q2x = q2.x, q2y = q2.y, q2z = q2.z;
+
+    const res = new Quaternion(
+      q1w * q2w - q1x * q2x - q1y * q2y - q1z * q2z,
+      q1x * q2w + q1w * q2x + q1y * q2z - q1z * q2y,
+      q1y * q2w + q1w * q2y + q1z * q2x - q1x * q2z,
+      q1z * q2w + q1w * q2z + q1x * q2y - q1y * q2x
+    );
+
+		return res;
   }
 
   /**
@@ -125,19 +133,18 @@ export class Quaternion {
     this.z += q.z;
   }
 
-  /** @param {Quaternion} q */
+  /** 
+   * @see https://en.wikipedia.org/wiki/Quaternion#Hamilton_product
+   * @param {Quaternion} q 
+   * @returns {this}
+   */
   multiplyQuaternion(q) {
-    const v1 = this.v;
-    const v2 = q.v;
-    let v = Vector3.multiply(v2, this.w);
-    v.addv3(Vector3.multiply(v1, q.w));
-    v.addv3(v1);
-    v = Vector3.cross(v, v2);
+    this.w = this.w * q.w - this.x * q.x - this.y * q.y - this.z * q.z,
+    this.x = this.x * q.w + this.w * q.x + this.y * q.z - this.z * q.y,
+    this.y = this.y * q.w + this.w * q.y + this.z * q.x - this.x * q.z,
+    this.z = this.z * q.w + this.w * q.z + this.x * q.y - this.y * q.x
 
-    this.w = this.w * q.w - Vector3.dot(v1, q.v);
-    this.x = v.x;
-    this.y = v.y;
-    this.z = v.z;
+		return this;
   }
 
   /** @param {number} s */
