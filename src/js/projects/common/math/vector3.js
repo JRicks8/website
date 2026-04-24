@@ -15,8 +15,8 @@ export class Vector3 {
   static get down() { return new Vector3(0, -1, 0); }
   static get right() { return new Vector3(1, 0, 0); }
   static get left() { return new Vector3(-1, 0, 0); }
-  static get forward() { return new Vector3(0, 0, 1); }
-  static get back() { return new Vector3(0, 0, -1); }
+  static get forward() { return new Vector3(0, 0, -1); }
+  static get back() { return new Vector3(0, 0, 1); }
 
   /**
    * @static
@@ -110,9 +110,9 @@ export class Vector3 {
   }
 
   /**
-   * Rotates v by the quaternion q and returns a new Vector3 with the result.
+   * Rotates v by the quaternion q and returns a new Vector3 with the result, normalized.
    * @see https://math.stackexchange.com/questions/40164/how-do-you-rotate-a-vector-by-a-unit-quaternion
-   * @param {Vector3Like} v
+   * @param {Vector3} v
    * @param {Quaternion} q 
    * @returns {Vector3}
    */
@@ -223,6 +223,7 @@ export class Vector3 {
   /**
    * Adds the components of v to this vector.
    * @param {Vector3Like[]} vectors
+   * @returns {this}
    */
   addv3(...vectors) {
     vectors.forEach(v => {
@@ -230,6 +231,7 @@ export class Vector3 {
       this.y += v.y;
       this.z += v.z;
     });
+    return this;
   }
 
   /**
@@ -312,13 +314,16 @@ export class Vector3 {
   /**
    * Rotates this vector by the quaternion q
    * @param {Quaternion} q 
+   * @returns {this}
    */
   rotate(q) {
+    const m = this.magnitude;
     const qInv = new Quaternion(q.w, -q.x, -q.y, -q.z);
-    const res = Quaternion.multiplyQuaternion(q, new Quaternion(0, this.x, this.y, this.z))
+    const res = Quaternion.multiplyQuaternion(q, new Quaternion(0, this.x, this.y, this.z).normalized)
       .multiplyQuaternion(qInv);
-    this.x = res.x;
-    this.y = res.y;
-    this.z = res.z;
+    this.x = res.x * m;
+    this.y = res.y * m;
+    this.z = res.z * m;
+    return this;
   }
 }

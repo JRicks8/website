@@ -6,7 +6,7 @@ import { GameState } from "../game/game-state.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { getMouseCoordsFromPixel } from "../util/window-utils.js";
 import { DraggableComponent } from "../components/draggable-body.js";
-import { getWorldPosition } from "../util/transform-utils.js";
+import { getLocalPosition, getWorldForward, getWorldPosition } from "../util/transform-utils.js";
 import { addForceAtPosition } from "../util/physics-utils.js";
 import { DebugProcess } from "./debug-process.js";
 import { Quaternion } from "../math/quaternion.js";
@@ -56,8 +56,16 @@ function startDragging(intersection) {
   const cameraWorldPos = new ThreeV3();
   _camera.getWorldPosition(cameraWorldPos);
 
-  const worldDragPoint = intersection.point;
-  _localDragPoint = Vector3.subtract(worldDragPoint, getWorldPosition(_dragComponent.entity.transform));
+  const f = getWorldForward(_dragComponent.entity.transform);
+  _localDragPoint = Vector3.subtract(intersection.point, getWorldPosition(new Vector3(), _dragComponent.entity.transform));
+  const localDragDistance = _localDragPoint.magnitude;
+  const a = Vector3.cross(f, _localDragPoint);
+  const q = new Quaternion(1 + Vector3.dot(f, _localDragPoint.normalized), ...a).normalized;
+  _localDragPoint = f.rotate(q).multiply(localDragDistance);
+  console.log(_localDragPoint.magnitude);
+
+  DebugProcess.drawPoints({ points: [getWorldPosition(_localDragPoint, _dragComponent.entity.transform)], color: new Color(0x00ff00), lifespan: 2 });
+
   _dragStartDistance = Math.max(_dragComponent.entity.transform.position.distanceTo(cameraWorldPos), 1);
 
   if (_wheelListener != null) EventDispatcher.stopListening('wheel', _wheelListener);
@@ -124,18 +132,24 @@ export const DraggableProcess = {
 
     const rotatedPoint = Vector3.rotate(_localDragPoint, _dragComponent.entity.transform.orientation);
 
-    DebugProcess.drawPoint({ position: desiredPos, color: new Color(0xff0000) });
-    DebugProcess.drawPoint({ position: Vector3.addv3(_dragComponent.entity.transform.position, rotatedPoint) });
+    DebugProcess.drawPoints({ points: [desiredPos], color: new Color(0xff0000) });
+    DebugProcess.drawPoints({ points: [getWorldPosition(rotatedPoint, _dragComponent.entity.transform)] });
+
+    DebugProcess.drawLine({ points: [
+      getWorldPosition(new Vector3(), _dragComponent.entity.transform),
+      getWorldPosition(rotatedPoint, _dragComponent.entity.transform)
+    ]});
 
     if (_draggedRigidbody?.entity) {
+      const worldDragPoint = getWorldPosition(rotatedPoint, _dragComponent.entity.transform);
       const desiredVelocity = new Vector3(
-        (desiredPos.x - _draggedRigidbody.entity.transform.position.x) * 2,
-        (desiredPos.y - _draggedRigidbody.entity.transform.position.y) * 2,
-        (desiredPos.z - _draggedRigidbody.entity.transform.position.z) * 2
+        (desiredPos.x - worldDragPoint.x) * 2,
+        (desiredPos.y - worldDragPoint.y) * 2,
+        (desiredPos.z - worldDragPoint.z) * 2
       );
       const difference = Vector3.subtract(desiredVelocity, _draggedRigidbody.bodyState.velocity);
       const derivedForce = difference.multiply(_draggedRigidbody.bodyState.mass).divide(Math.max(dt, 0.0167));
-      addForceAtPosition(_draggedRigidbody, derivedForce, _localDragPoint);
+      addForceAtPosition(_draggedRigidbody, derivedForce, rotatedPoint);
       /**
        * v = (momentum * dt) / mass
        * v * mass = momentum * dt

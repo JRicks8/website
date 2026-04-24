@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Color, Material, Mesh, Object3D, Points, PointsMaterial, Scene } from "three";
+import { BufferAttribute, BufferGeometry, Color, Line, LineBasicMaterial, LineDashedMaterial, Material, Mesh, Object3D, Points, PointsMaterial, Scene, Vector3 as ThreeV3 } from "three";
 
 /** 
  * @typedef DebugShape
@@ -8,11 +8,12 @@ import { BufferAttribute, BufferGeometry, Color, Material, Mesh, Object3D, Point
 
 /**
  * @typedef Config
- * @property {import("../math/vector3.js").Vector3Like} position
+ * @property {import("../math/vector3.js").Vector3Like[]} points
  * @property {number} [lifespan] Defaults to 0 (draw for one frame)
  * @property {number} [size] Defaults to 10 pixels
  * @property {Color} [color] Defaults to white
  * @property {boolean} [attenuation] Defaults to false
+ * @property {boolean} [dashed] Defaults to false
  */
 
 /** @type {Scene} */
@@ -28,23 +29,57 @@ export const DebugProcess = {
   },
 
   /** @param {Config} config */
-  drawPoint: (config) => {
+  drawPoints: (config) => {
     const dotGeometry = new BufferGeometry();
-    dotGeometry.setAttribute('position', new BufferAttribute(new Float32Array([config.position.x, config.position.y, config.position.z]), 3));
+    const points = [];
+    for (const point of config.points) {
+      points.push(point.x, point.y, point.z);
+    }
+    dotGeometry.setAttribute('position', new BufferAttribute(new Float32Array(points), 3));
     const dotMaterial = new PointsMaterial({ 
       size: config.size ?? 10, 
       color: config.color ?? new Color(0xffffff), 
       sizeAttenuation: config.attenuation ?? false 
     });
-    const point = new Points(dotGeometry, dotMaterial);
+    const pointsObject = new Points(dotGeometry, dotMaterial);
     if (config.attenuation) {
-      point.renderOrder = 999;
+      pointsObject.renderOrder = 999;
       dotMaterial.depthTest = false;
       dotMaterial.depthWrite = false;
     }
-    _scene.add(point);
+    _scene.add(pointsObject);
     _shapes.push({
-      object: point,
+      object: pointsObject,
+      lifespan: config.lifespan ?? 0
+    });
+  },
+
+  /** @param {Config} config */
+  drawLine: (config) => {
+    const lineGeometry = new BufferGeometry();
+    const linePoints = config.points.map(linePoint => new ThreeV3(linePoint.x, linePoint.y, linePoint.z));
+    lineGeometry.setFromPoints(linePoints);
+    let mat;
+    if (config.dashed) {
+      mat = new LineDashedMaterial({
+        color: config.color ?? new Color(0xffffff),
+        linewidth: config.size ?? 1,
+        scale: config.size ?? 1,
+        dashSize: 3,
+        gapSize: 1
+      });
+    } else {
+      mat = new LineBasicMaterial({
+        color: config.color ?? new Color(0xffffff),
+        linewidth: config.size ?? 1,
+        linecap: 'round',
+        linejoin: 'round'
+      });
+    }
+    const lineObject = new Line(lineGeometry, mat);
+    _scene.add(lineObject);
+    _shapes.push({
+      object: lineObject,
       lifespan: config.lifespan ?? 0
     });
   },

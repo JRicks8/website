@@ -16,7 +16,7 @@ export class NarrowPhaseSolver {
     for (const {r1, r2} of pairs) {
       const point = sphereIntersectsSphere(ComponentManager.getComponent(r1.entity, COMP_COLLIDER), ComponentManager.getComponent(r2.entity, COMP_COLLIDER));
       if (point) {
-        DebugProcess.drawPoint({ position: point });
+        DebugProcess.drawPoints({ points: [point] });
       }
     }
     return contacts;

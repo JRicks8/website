@@ -17,9 +17,6 @@ import { ScriptProcess } from "../projects/common/processes/script-process.js";
 import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js";
 import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
 import { DebugProcess } from "../projects/common/processes/debug-process.js";
-import { Vector3 } from "../projects/common/math/vector3.js";
-import { addTorque } from "../projects/common/util/physics-utils.js";
-import { COMP_RIGIDBODY } from "../projects/common/components/rigidbody.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
