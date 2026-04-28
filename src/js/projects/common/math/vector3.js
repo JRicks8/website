@@ -118,13 +118,26 @@ export class Vector3 {
   /**
    * Rotates v by the quaternion q and returns a new Vector3 with the result, normalized.
    * @see https://math.stackexchange.com/questions/40164/how-do-you-rotate-a-vector-by-a-unit-quaternion
-   * @param {Vector3} v
+   * @param {Vector3Like} v
    * @param {Quaternion} q 
    * @returns {Vector3}
    */
   static rotate(v, q) {
     return Quaternion.multiplyQuaternion(q, new Quaternion(0, v.x, v.y, v.z))
       .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v;
+  }
+
+  /**
+   * Returns the result of projecting v1 onto v2.
+   * @param {Vector3} v1 
+   * @param {Vector3} v2 
+   * @returns {Vector3}
+   */
+  static project(v1, v2) {
+    return Vector3.multiply(
+      v2,
+      Vector3.dot(v1, v2) / v2.sqrMagnitude
+    );
   }
 
   /** @type {number} */
@@ -332,6 +345,19 @@ export class Vector3 {
     this.y = res.y;
     this.z = res.z;
     return this;
+  }
+
+  /**
+   * Projects this vector onto v
+   * @param {Vector3} v 
+   */
+  project(v) {
+    const m = v.sqrMagnitude;
+    if (m === 0) {
+      this.set(0, 0, 0);
+      return;
+    }
+    this.copy(Vector3.multiply(v, Vector3.dot(this, v) / m));
   }
 
   toString(sigFigs = 3) {
