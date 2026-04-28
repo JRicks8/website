@@ -17,6 +17,7 @@ import { ScriptProcess } from "../projects/common/processes/script-process.js";
 import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js";
 import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
 import { DebugProcess } from "../projects/common/processes/debug-process.js";
+import { COMP_RIGIDBODY, Restraint, RESTRAINT_POSITION, RESTRAINT_POSITION_AXIS, RigidbodyComponent } from "../projects/common/components/rigidbody.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
@@ -65,13 +66,22 @@ EventDispatcher.listenToEvent('mousemove', (/**@type {MouseEvent}*/ mouseEvent) 
 DraggableProcess.initialize(camera);
 DebugProcess.initialize(scene);
 
-// PhysicsProcess.globalConstantForce.y = -9.81;
+PhysicsProcess.globalConstantForce.y = -9.81;
 
 Registry.setContext('physics');
 
 const b1 = buildDraggableBody(Registry.getUniqueId(), scene, 0.5);
 Registry.register(b1, b1.id);
 b1.transform.position.set(2, 0, -5);
+{
+  /** @type {RigidbodyComponent} */
+  const rb = ComponentManager.getComponent(b1, COMP_RIGIDBODY);
+  const r = new Restraint();
+  r.type = RESTRAINT_POSITION;
+  r.components = { x: true, y: true, z: true };
+  r.vector.set(0, 0, 0);
+  rb.restraints.push(r);
+}
 
 const b2 = buildDraggableBody(Registry.getUniqueId(), scene, 2);
 Registry.register(b2, b2.id);
@@ -105,5 +115,5 @@ TickProcess.setCallback((dt) => {
   renderer.render(scene, camera);
   DebugProcess.afterRender(dt);
 });
-TickProcess.setTickDuration(0);
+TickProcess.setTickDuration(16);
 TickProcess.start();

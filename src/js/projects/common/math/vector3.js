@@ -56,11 +56,17 @@ export class Vector3 {
   /**
    * @static
    * @param {Vector3Like} v 
-   * @param {number} n 
+   * @param {number[]} ns
    * @returns {Vector3}
    */
-  static multiply(v, n) {
-    return new Vector3(v.x * n, v.y * n, v.z * n);
+  static multiply(v, ...ns) {
+    const res = new Vector3().copy(v);
+    for (const n of ns) {
+      res.x *= n;
+      res.y *= n;
+      res.z *= n;
+    }
+    return res;
   }
 
   /**
@@ -139,7 +145,8 @@ export class Vector3 {
   }
 
   get normalized() {
-    const m = this.magnitude || 1;
+    const m = this.magnitude;
+    if (m === 0) return new Vector3();
     return new Vector3(this.x / m, this.y / m, this.z / m);
   }
 
@@ -284,12 +291,14 @@ export class Vector3 {
 
   /**
    * Normalizes this vector, such that the magnitude equals 1.
+   * @returns {this}
    */
   normalize() {
     const m = this.magnitude || 1;
     this.x /= m;
     this.y /= m;
     this.z /= m;
+    return this;
   }
 
   /**
@@ -312,18 +321,21 @@ export class Vector3 {
   }
 
   /**
-   * Rotates this vector by the quaternion q
+   * Rotates this vector by the quaternion q. This vector is assumed to be normalized.
    * @param {Quaternion} q 
    * @returns {this}
    */
   rotate(q) {
-    const m = this.magnitude;
-    const qInv = new Quaternion(q.w, -q.x, -q.y, -q.z);
-    const res = Quaternion.multiplyQuaternion(q, new Quaternion(0, this.x, this.y, this.z).normalized)
-      .multiplyQuaternion(qInv);
-    this.x = res.x * m;
-    this.y = res.y * m;
-    this.z = res.z * m;
+    const res = Quaternion.multiplyQuaternion(q, new Quaternion(0, this.x, this.y, this.z))
+      .multiplyQuaternion(q.inverse());
+    this.x = res.x;
+    this.y = res.y;
+    this.z = res.z;
     return this;
+  }
+
+  toString(sigFigs = 3) {
+    const factor = Math.pow(10, sigFigs - 1);
+    return `(${Math.round(this.x*factor)/factor}, ${Math.round(this.y*factor)/factor}, ${Math.round(this.z*factor)/factor})`
   }
 }

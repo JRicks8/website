@@ -2,13 +2,13 @@
 let _callback = (dt) => {};
 let _paused = true;
 
-let _interval = 0;
+let _interval = 16;
 let _last = 0;
 
 /** Performs a single tick cycle. */
 function tick() {
 
-  let now = Date.now();
+  let now = performance.now();
   const dt = (now - _last);
 
   if (dt >= _interval) {
@@ -25,7 +25,7 @@ export const TickProcess = {
   /** Unpauses and starts the tick cycle. */
   start() {
     _paused = false;
-    _last = Date.now();
+    _last = performance.now();
     window.requestAnimationFrame(tick);
   },
 
@@ -42,13 +42,12 @@ export const TickProcess = {
     _callback = newCallback;
   },
 
-  // TODO: Manual throttle of tick duration
   /**
    * The desired amount of time in milliseconds to spend before advancing to the next tick.
    * Reducing this effectively increases framerate and makes things look a bit better at the cost of 
    * more compute required. Increasing this may improve performance.
-   * Setting this to zero will make the application run as fast as possible.
-   * @param {number} ms Time in milliseconds
+   * Setting this to one will make the application run as fast as possible.
+   * @param {number} ms Time in milliseconds (minimum of 1)
    */
   setTickDuration(ms) {
     if (!ms && ms !== 0) return;

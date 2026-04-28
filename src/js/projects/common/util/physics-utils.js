@@ -1,7 +1,8 @@
 import { ColliderComponent, COMP_COLLIDER } from "../components/class/collider.js";
-import { COMP_RIGIDBODY, RigidbodyComponent } from "../components/rigidbody.js";
+import { COMP_RIGIDBODY, Restraint, RigidbodyComponent } from "../components/rigidbody.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
+import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
 
 /**
@@ -63,8 +64,9 @@ export function addForceAtPosition(rb, force, point) {
 }
 
 /**
- * Calculates the velocity of a point relative to the center of mass of rb.
- * = ω(t) × (r_i(t) − x(t)) + v(t)
+ * Calculates the velocity of a point relative to the position of rb.
+ * Point is expected to be in local space.
+ * v_i(t) = ω(t) × r_i(t) + v(t)
  * @param {RigidbodyComponent} rb 
  * @param {Vector3} point 
  * @returns {Vector3} 
@@ -73,11 +75,46 @@ export function velocityAtPoint(rb, point) {
   return Vector3.addv3(
     Vector3.cross(
       rb.bodyState.angularVelocity, 
-      Vector3.subtract(
-        point, 
-        rb.bodyState.position
-      )
+      point
     ),
     rb.bodyState.velocity
   );
+}
+
+/**
+ * Limits the vector to meet the requirements of the restraint.
+ * @param {Restraint} restraint
+ * @param {Vector3} vector
+ */
+export function applyLinearRestraint(restraint, vector) {
+  if (restraint.components.x) vector.x = restraint.vector.x;
+  if (restraint.components.y) vector.y = restraint.vector.y;
+  if (restraint.components.z) vector.z = restraint.vector.z;
+}
+
+/**
+ * Limits the vector to meet the requirements of the restraint.
+ * @param {Restraint} restraint
+ * @param {Vector3} vector
+ */
+export function applyLinearAxisRestraint(restraint, vector) {
+  const m = vector.magnitude;
+  if (m === 0) {
+    vector.set(0, 0, 0);
+    return;
+  }
+
+  vector.divide(m);
+  const dot = Vector3.dot(restraint.vector, vector);
+  const res = Vector3.multiply(restraint.vector, m, dot);
+  vector.copy(res);
+}
+
+/**
+ * Limits the quaternion to meet the requirements of the restraint.
+ * @param {Restraint} restraint
+ * @param {Quaternion} rotation
+ */
+export function applyRotationAxisRestraint(restraint, rotation) {
+  
 }

@@ -125,12 +125,16 @@ export class Quaternion {
     this.z = q.z;
   }
 
-  /** @param {Quaternion} q */
+  /** 
+   * @param {Quaternion} q 
+   * @returns {this}
+   */
   add(q) {
     this.w += q.w;
     this.x += q.x;
     this.y += q.y;
     this.z += q.z;
+    return this;
   }
 
   /** 
@@ -147,12 +151,16 @@ export class Quaternion {
 		return this;
   }
 
-  /** @param {number} s */
+  /** 
+   * @param {number} s 
+   * @returns {this}
+   */
   multiplyScalar(s) {
     this.w *= s;
     this.x *= s;
     this.y *= s;
     this.z *= s;
+    return this;
   }
 
   /** @param {number} s */
@@ -169,5 +177,10 @@ export class Quaternion {
     this.x /= m;
     this.y /= m;
     this.z /= m;
+  }
+
+  /** @returns The inverse of this quaterion (w, -x, -y, -z) */
+  inverse() {
+    return new Quaternion(this.w, -this.x, -this.y, -this.z);
   }
 }
