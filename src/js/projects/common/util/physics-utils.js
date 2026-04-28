@@ -98,16 +98,25 @@ export function applyLinearRestraint(restraint, vector) {
  * @param {Vector3} vector
  */
 export function applyLinearAxisRestraint(restraint, vector) {
-  const m = vector.magnitude;
-  if (m === 0) {
-    vector.set(0, 0, 0);
-    return;
-  }
 
-  vector.divide(m);
-  const dot = Vector3.dot(restraint.vector, vector);
-  const res = Vector3.multiply(restraint.vector, m, dot);
+  const v = restraint.vector;
+  // project vector onto restraint.vector
+  const res = Vector3.multiply(
+    v,
+    Vector3.dot(vector, v) / v.sqrMagnitude
+  );
   vector.copy(res);
+
+  // const m = vector.magnitude;
+  // if (m === 0) {
+  //   vector.set(0, 0, 0);
+  //   return;
+  // }
+
+  // vector.divide(m);
+  // const dot = Vector3.dot(restraint.vector, vector);
+  // const res = Vector3.multiply(restraint.vector, m, dot);
+  // vector.copy(res);
 }
 
 /**
@@ -116,5 +125,5 @@ export function applyLinearAxisRestraint(restraint, vector) {
  * @param {Quaternion} rotation
  */
 export function applyRotationAxisRestraint(restraint, rotation) {
-  
+  // TODO
 }

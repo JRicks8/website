@@ -3,6 +3,7 @@ import { Vector3 } from "../math/vector3.js";
 
 /**
  * Calculates the world position of v local to the given transform.
+ * The world position is calculated irrespective of orientation (TODO)
  * @param {import("../math/vector3.js").Vector3Like} v 
  * @param {TransformComponent} transform 
  */

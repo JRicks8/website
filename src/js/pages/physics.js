@@ -77,9 +77,8 @@ b1.transform.position.set(2, 0, -5);
   /** @type {RigidbodyComponent} */
   const rb = ComponentManager.getComponent(b1, COMP_RIGIDBODY);
   const r = new Restraint();
-  r.type = RESTRAINT_POSITION;
-  r.components = { x: true, y: true, z: true };
-  r.vector.set(0, 0, 0);
+  r.type = RESTRAINT_POSITION_AXIS;
+  r.vector.set(1, 0, 0);
   rb.restraints.push(r);
 }
 
