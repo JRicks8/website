@@ -143,12 +143,18 @@ export class Quaternion {
    * @returns {this}
    */
   multiplyQuaternion(q) {
-    this.w = this.w * q.w - this.x * q.x - this.y * q.y - this.z * q.z,
-    this.x = this.x * q.w + this.w * q.x + this.y * q.z - this.z * q.y,
-    this.y = this.y * q.w + this.w * q.y + this.z * q.x - this.x * q.z,
-    this.z = this.z * q.w + this.w * q.z + this.x * q.y - this.y * q.x
 
-		return this;
+    const w = this.w * q.w - this.x * q.x - this.y * q.y - this.z * q.z;
+    const x = this.x * q.w + this.w * q.x + this.y * q.z - this.z * q.y;
+    const y = this.y * q.w + this.w * q.y + this.z * q.x - this.x * q.z;
+    const z = this.z * q.w + this.w * q.z + this.x * q.y - this.y * q.x;
+
+    this.w = w;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+
+    return this;
   }
 
   /** 

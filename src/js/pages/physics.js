@@ -66,19 +66,20 @@ EventDispatcher.listenToEvent('mousemove', (/**@type {MouseEvent}*/ mouseEvent) 
 DraggableProcess.initialize(camera);
 DebugProcess.initialize(scene);
 
-PhysicsProcess.globalConstantForce.y = -9.81;
+// PhysicsProcess.globalConstantForce.y = -9.81;
 
 Registry.setContext('physics');
 
 const b1 = buildDraggableBody(Registry.getUniqueId(), scene, 0.5);
 Registry.register(b1, b1.id);
-b1.transform.position.set(2, 0, -5);
+b1.transform.position.set(0, 0, 0);
 {
   /** @type {RigidbodyComponent} */
   const rb = ComponentManager.getComponent(b1, COMP_RIGIDBODY);
   const r = new Restraint();
-  r.type = RESTRAINT_POSITION_AXIS;
-  r.vector.set(1, 0, 0);
+  r.type = RESTRAINT_POSITION;
+  r.components = { x: true, y: true, z: true };
+  r.vector.set(0, 0, 0);
   rb.restraints.push(r);
 }
 

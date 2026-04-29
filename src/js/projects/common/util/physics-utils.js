@@ -1,9 +1,12 @@
+import { Color } from "three";
 import { ColliderComponent, COMP_COLLIDER } from "../components/class/collider.js";
 import { COMP_RIGIDBODY, Restraint, RigidbodyComponent } from "../components/rigidbody.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
+import { DebugProcess } from "../processes/debug-process.js";
+import { getWorldPosition } from "./transform-utils.js";
 
 /**
  * Sets the mass of rb.  
@@ -61,6 +64,14 @@ export function addTorque(rb, force) {
 export function addForceAtPosition(rb, force, point) {
   addLinearForce(rb, force);
   addTorque(rb, Vector3.cross(point, force));
+
+  DebugProcess.drawLine({
+    points: [
+      point,
+      Vector3.cross(point, force).addv3(point)
+    ],
+    color: new Color(0x0000ff)
+  });
 }
 
 /**

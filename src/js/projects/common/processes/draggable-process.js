@@ -7,8 +7,8 @@ import { ComponentManager } from "../game/component-manager.js";
 import { getMouseCoordsFromPixel } from "../util/window-utils.js";
 import { DraggableComponent } from "../components/draggable-body.js";
 import { getWorldPosition } from "../util/transform-utils.js";
-import { addForceAtPosition, velocityAtPoint } from "../util/physics-utils.js";
 import { DebugProcess } from "./debug-process.js";
+import { addForceAtPosition } from "../util/physics-utils.js";
 
 /** @type {DraggableComponent[]} */
 const _bodies = [];
@@ -33,8 +33,7 @@ let _wheelListener = null;
 /** @type {number | null} */
 let _mouseUpListener = null;
 
-let _kp = 8;
-let _kd = 28;
+let _dragForce = 1;
 
 /**
  * When the mouse is pressed down and a raycast is made and intersects
@@ -85,6 +84,26 @@ function startDragging(intersection) {
   });
 }
 
+/**
+ * Gets the position of the mouse in world space by extended a vector from the 
+ * camera in the perceived direction of the mouse.
+ * @param {Camera} camera
+ * @returns {Vector3}
+ */
+function getMousePos(camera) {
+  const coords = getMouseCoordsFromPixel(GameState.mousePosition.x, GameState.mousePosition.y);
+  // Get the direction the mouse is pointing in using this three.js raycaster
+  const dummyRaycaster = new Raycaster();
+  dummyRaycaster.setFromCamera(new ThreeV2(...coords), camera);
+  const mousePos = new Vector3(...dummyRaycaster.ray.direction);
+  
+  // Calculate the desired (world) position
+  const cameraWorldPos = new ThreeV3();
+  camera.getWorldPosition(cameraWorldPos);
+  mousePos.multiply(_dragDesiredDistance).addv3(cameraWorldPos);
+  return mousePos;
+}
+
 export const DraggableProcess = {
   /**
    * Set up this process. This process needs a camera to operate correctly.
@@ -122,56 +141,60 @@ export const DraggableProcess = {
       return;
     }
 
-    const coords = getMouseCoordsFromPixel(GameState.mousePosition.x, GameState.mousePosition.y);
-
-    // Get the direction the mouse is pointing in using this three.js raycaster
-    const dummyRaycaster = new Raycaster();
-    dummyRaycaster.setFromCamera(new ThreeV2(...coords), _camera);
-    const desiredPos = new Vector3(...dummyRaycaster.ray.direction);
-    
-    // Calculate the desired (world) position
-    const cameraWorldPos = new ThreeV3();
-    _camera.getWorldPosition(cameraWorldPos);
-    desiredPos.multiply(_dragDesiredDistance).addv3(cameraWorldPos);
+    const mousePos = getMousePos(_camera);
 
     const rotatedLocalPoint = Vector3.rotate(_localDragPoint, _dragComponent.entity.transform.orientation);
 
     // Desired (world) position
-    DebugProcess.drawPoints({ points: [desiredPos], color: new Color(0xff0000) });
+    DebugProcess.drawPoints({ points: [mousePos], color: new Color(0xff0000) });
     // Local drag point translated to world position
-    DebugProcess.drawPoints({ points: [getWorldPosition(rotatedLocalPoint, _dragComponent.entity.transform)] });
+    DebugProcess.drawPoints({ points: [getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint)] });
 
     DebugProcess.drawLine({ points: [
-      getWorldPosition(new Vector3(), _dragComponent.entity.transform),
-      getWorldPosition(rotatedLocalPoint, _dragComponent.entity.transform)
+      getWorldPosition(_dragComponent.entity.transform),
+      getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint)
     ]});
 
     if (_draggedRigidbody?.entity) {
-      const worldDragPoint = getWorldPosition(rotatedLocalPoint, _dragComponent.entity.transform);
+      const worldDragPoint = getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint);
 
       DebugProcess.drawPoints({ points: [worldDragPoint], color: new Color(0x00ff00) });
 
-      // Find desired velocity of the point
-      const currentPointVelocity = velocityAtPoint(_draggedRigidbody, rotatedLocalPoint);
-      const positionError = Vector3.subtract(desiredPos, worldDragPoint);
-      const desiredPointVelocity = Vector3.multiply(positionError, _kp);
-      const velocityError = Vector3.subtract(desiredPointVelocity, currentPointVelocity);
-      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.bodyState.mass, _kd);
+      // Need to simulate dragging with the mouse using physics.
 
-      console.log(currentPointVelocity.toString());
+      // Here's the plan:
 
-      addForceAtPosition(_draggedRigidbody, derivedForce.normalized, rotatedLocalPoint);
+      // Simulate this as a spring. One end is on the point on the object which we are dragging, and the other 
+      // is attached to the point in space where the mouse appears to be.
+      // We'll call these points p1 and p2, respectively
 
-      DebugProcess.drawLine({ 
-        color: new Color(0xff0000),
-        points: [
-          worldDragPoint,
-          Vector3.addv3(worldDragPoint, currentPointVelocity)
-        ], 
-      });
+      // The force exerted by the spring is:
+      // f = k * M
+      // k: spring constant (N/m) or, how much force is required to compress the spring by one meter
+      // M: distance (m) the distance between p1 and p2
+
+      // First, project the vector p1 -> p2 onto two vectors:
+      // - The first is p1 -> center of mass of the object
+      // - The second is a vector perpendicular to the first
+      // We'll be applying a linear force to the object with the first one, then a torque with the second
+
+      // TODO: Figure out how to have the second vector apply torque in the direction that would be
+      // required to have the first vector parallel with p1 -> p2
+
+      const forceDir = Vector3.subtract(mousePos, worldDragPoint).normalize();
+      const totalForce = Vector3.multiply(forceDir, _dragForce, _draggedRigidbody.bodyState.mass);
+
+      addForceAtPosition(_draggedRigidbody, totalForce, rotatedLocalPoint);
       
+      DebugProcess.drawLine({
+        points: [
+          getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint),
+          Vector3.addv3(totalForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
+        ]
+      });
+
     } else {
-      _dragComponent.entity.transform.position.setv3(desiredPos);
+      _dragComponent.entity.transform.position.setv3(mousePos);
     }
   },
 
