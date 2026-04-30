@@ -8,7 +8,7 @@ import { getMouseCoordsFromPixel } from "../util/window-utils.js";
 import { DraggableComponent } from "../components/draggable-body.js";
 import { getWorldPosition } from "../util/transform-utils.js";
 import { DebugProcess } from "./debug-process.js";
-import { addForceAtPosition } from "../util/physics-utils.js";
+import { addForceAtPosition, velocityAtPoint } from "../util/physics-utils.js";
 
 /** @type {DraggableComponent[]} */
 const _bodies = [];
@@ -33,7 +33,8 @@ let _wheelListener = null;
 /** @type {number | null} */
 let _mouseUpListener = null;
 
-let _dragForce = 1;
+let _kp = 4;
+let _kd = 9;
 
 /**
  * When the mouse is pressed down and a raycast is made and intersects
@@ -51,17 +52,12 @@ function startDragging(intersection) {
     return;
   }
 
+  _dragging = true;
+
   _draggedRigidbody = ComponentManager.getComponent(_dragComponent.entity, COMP_RIGIDBODY);
 
-  _dragging = true;
   const cameraWorldPos = new ThreeV3();
   _camera.getWorldPosition(cameraWorldPos);
-
-  // - Get local vector v_l to point and record magnitude m
-  // - normalize v_l
-  // - Rotate v_l by inverse of transform orientation
-  // - multiply v_l by m 
-  // This should be the local (unrotated) position of the clicked location
 
   _localDragPoint = Vector3.subtract(intersection.point, _dragComponent.entity.transform.position);
   const m = _localDragPoint.magnitude;
@@ -158,38 +154,19 @@ export const DraggableProcess = {
     if (_draggedRigidbody?.entity) {
       const worldDragPoint = getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint);
 
-      DebugProcess.drawPoints({ points: [worldDragPoint], color: new Color(0x00ff00) });
+      const currentPointVelocity = velocityAtPoint(_draggedRigidbody, rotatedLocalPoint);
+      const positionError = Vector3.subtract(mousePos, worldDragPoint);
+      const desiredPointVelocity = Vector3.multiply(positionError, _kp);
+      const velocityError = Vector3.subtract(desiredPointVelocity, currentPointVelocity);
+      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.bodyState.mass, _kd);
 
-      // Need to simulate dragging with the mouse using physics.
-
-      // Here's the plan:
-
-      // Simulate this as a spring. One end is on the point on the object which we are dragging, and the other 
-      // is attached to the point in space where the mouse appears to be.
-      // We'll call these points p1 and p2, respectively
-
-      // The force exerted by the spring is:
-      // f = k * M
-      // k: spring constant (N/m) or, how much force is required to compress the spring by one meter
-      // M: distance (m) the distance between p1 and p2
-
-      // First, project the vector p1 -> p2 onto two vectors:
-      // - The first is p1 -> center of mass of the object
-      // - The second is a vector perpendicular to the first
-      // We'll be applying a linear force to the object with the first one, then a torque with the second
-
-      // TODO: Figure out how to have the second vector apply torque in the direction that would be
-      // required to have the first vector parallel with p1 -> p2
-
-      const forceDir = Vector3.subtract(mousePos, worldDragPoint).normalize();
-      const totalForce = Vector3.multiply(forceDir, _dragForce, _draggedRigidbody.bodyState.mass);
-
-      addForceAtPosition(_draggedRigidbody, totalForce, rotatedLocalPoint);
+      addForceAtPosition(_draggedRigidbody, derivedForce, rotatedLocalPoint);
       
+      DebugProcess.drawPoints({ points: [worldDragPoint], color: new Color(0x00ff00) });
       DebugProcess.drawLine({
         points: [
           getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint),
-          Vector3.addv3(totalForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
+          Vector3.addv3(derivedForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
         ]
       });
 

@@ -64,14 +64,6 @@ export function addTorque(rb, force) {
 export function addForceAtPosition(rb, force, point) {
   addLinearForce(rb, force);
   addTorque(rb, Vector3.cross(point, force));
-
-  DebugProcess.drawLine({
-    points: [
-      point,
-      Vector3.cross(point, force).addv3(point)
-    ],
-    color: new Color(0x0000ff)
-  });
 }
 
 /**
