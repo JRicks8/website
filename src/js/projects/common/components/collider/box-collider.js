@@ -1,5 +1,5 @@
 import { BoxGeometry, Mesh, MeshNormalMaterial, SphereGeometry } from "three";
-import { ColliderComponent } from "../class/collider.js";
+import { ColliderComponent } from "./collider.js";
 
 export const COLLIDER_BOX = 'BoxCollider';
 

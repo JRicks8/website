@@ -1,5 +1,5 @@
 import { Entity } from "../class/entity.js";
-import { COMP_COLLIDER } from "../components/class/collider.js";
+import { COMP_COLLIDER } from "../components/collider/collider.js";
 import { Component } from "../components/class/component.js";
 import { COMP_DRAGGABLE, DraggableComponent } from "../components/draggable-body.js";
 import { COMP_MESH_RENDERER, MeshRendererComponent } from "../components/mesh-renderer.js";

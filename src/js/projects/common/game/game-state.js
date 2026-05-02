@@ -6,5 +6,9 @@ export const GameState = {
   scene: undefined,
   /** @type {Camera | undefined} */
   mainCamera: undefined,
-  mousePosition: new Vector2()
+  mousePosition: new Vector2(),
+  
+  paused: false,
+  // Hard pause completely halts the tick cycle.
+  hardPaused: false
 };

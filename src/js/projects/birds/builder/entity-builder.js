@@ -5,7 +5,7 @@ import { RigidbodyComponent } from "../../common/components/rigidbody.js";
 import { DraggableComponent } from "../../common/components/draggable-body.js";
 import { ComponentManager } from "../../common/game/component-manager.js";
 import { Registry } from "../../common/game/register.js";
-import { ColliderComponent } from "../../common/components/class/collider.js";
+import { ColliderComponent } from "../../common/components/collider/collider.js";
 
 export function entityBuilder() {
   const entity = new Entity(Registry.getUniqueId());

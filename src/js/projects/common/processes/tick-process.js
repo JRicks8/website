@@ -1,22 +1,28 @@
+import { GameState } from "../game/game-state.js";
+
 /** @type {(dt: number) => void} dt */
 let _callback = (dt) => {};
-let _paused = true;
 
 let _interval = 16;
 let _last = 0;
 
-/** Performs a single tick cycle. */
-function tick() {
-
+/** 
+ * Performs a looping tick cycle, unless the game state is hard-paused or single == true. 
+ * @param {DOMHighResTimeStamp} [snapshot]
+ * @param {boolean} [single]
+ */
+function tick(snapshot, single = false) {
   let now = performance.now();
-  const dt = (now - _last);
 
-  if (dt >= _interval) {
+  let dt = now - _last;
+  let adjInterval = _interval;
+
+  if (dt >= adjInterval) {
     _last = now;
     _callback(dt / 1000); // dt is in ms. Convert ms -> s
   }
 
-  if (_paused) return;
+  if (GameState.hardPaused || single) return;
   window.requestAnimationFrame(tick);
 }
 
@@ -24,14 +30,14 @@ function tick() {
 export const TickProcess = {
   /** Unpauses and starts the tick cycle. */
   start() {
-    _paused = false;
     _last = performance.now();
     window.requestAnimationFrame(tick);
   },
 
-  /** Prevents the tick cycle from continuing. */
-  pause() {
-    _paused = true;
+  /** @param {number} dt */
+  singleStep(dt) {
+    _last = performance.now() - dt;
+    tick(undefined, true);
   },
 
   /**

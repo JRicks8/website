@@ -1,9 +1,11 @@
+// @ts-nocheck
 import { Contact } from "../collision/contact.js";
-import { COMP_COLLIDER } from "../components/class/collider.js";
+import { ColliderComponent, COMP_COLLIDER } from "../components/collider/collider.js";
 import { RigidbodyComponent } from "../components/rigidbody.js";
 import { ComponentManager } from "../game/component-manager.js";
+import { GameState } from "../game/game-state.js";
 import { DebugProcess } from "../processes/debug-process.js";
-import { sphereIntersectsSphere } from "./intersection-tests.js";
+import { getIntersectionTest } from "./intersection-test-mapper.js";
 
 export class NarrowPhaseSolver {
   /**
@@ -14,9 +16,16 @@ export class NarrowPhaseSolver {
     /** @type {Contact[]} */
     const contacts = [];
     for (const {r1, r2} of pairs) {
-      const point = sphereIntersectsSphere(ComponentManager.getComponent(r1.entity, COMP_COLLIDER), ComponentManager.getComponent(r2.entity, COMP_COLLIDER));
+      /** @type {ColliderComponent} */
+      const c1 = ComponentManager.getComponent(r1.entity, COMP_COLLIDER);
+      /** @type {ColliderComponent} */
+      const c2 = ComponentManager.getComponent(r2.entity, COMP_COLLIDER);
+
+      const test = getIntersectionTest(c1.colliderType, c2.colliderType);
+      const point = test(c1, c2);
       if (point) {
         DebugProcess.drawPoints({ points: [point] });
+        GameState.paused = true;
       }
     }
     return contacts;

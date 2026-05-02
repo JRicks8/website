@@ -1,13 +1,19 @@
-import { BoxColliderComponent } from "../components/collider/box-collider.js";
-import { SphereColliderComponent } from "../components/collider/sphere-collider.js";
+// @ts-nocheck
+import { BoxGeometry } from "three";
+import { Entity } from "../class/entity.js";
 import { Vector3 } from "../math/vector3.js";
+import { ConvexColliderComponent } from "../components/collider/convex-polyhedron-collider.js";
+import { ConcaveColliderComponent } from "../components/collider/concave-collider.js";
+import { ColliderComponent } from "../components/collider/collider.js";
 
 /**
- * @param {SphereColliderComponent} s1 
- * @param {SphereColliderComponent} s2 
+ * @param {ColliderComponent} s1 
+ * @param {ColliderComponent} s2 
  * @returns {Vector3 | null} The point at which the two spheres are touching, or null if they are not touching.
  */
-export function sphereIntersectsSphere(s1, s2) {
+export function sphToSph(s1, s2) {
+  if (!s1.entity || !s2.entity) return null;
+
   const radii = s1.geometry.parameters.radius + s2.geometry.parameters.radius;
   const dist = s1.entity.transform.position.distanceToSquared(s2.entity.transform.position);
   if (radii * radii >= dist) {
@@ -22,14 +28,82 @@ export function sphereIntersectsSphere(s1, s2) {
 }
 
 /**
- * @param {BoxColliderComponent} b1
- * @param {BoxColliderComponent} b2
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
  * @returns {Vector3 | null} The point at which the two boxes are touching, or null if they are not touching.
  */
-export function boxIntersectsBox(b1, b2) {
-  
+export function boxToBox(b1, b2) {
+  return null;
 }
 
-export function triangleIntersectsTriangle() {
+/**
+ * @param {ConvexColliderComponent} b1
+ * @param {ConvexColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function vexToVex(b1, b2) {
+  return null;
+}
 
+/**
+ * @param {ConcaveColliderComponent} b1
+ * @param {ConcaveColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function cavToCav(b1, b2) {
+  return null;
+}
+
+/**
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function sphToBox(b1, b2) {
+  return null;
+}
+
+/**
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function sphToVex(b1, b2) {
+  return null;
+}
+
+/**
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function sphToCav(b1, b2) {
+  return null;
+}
+
+/**
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function boxToVex(b1, b2) {
+  return null;
+}
+
+/**
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function boxToCav(b1, b2) {
+  return null;
+}
+
+/**
+ * @param {ColliderComponent} b1
+ * @param {ColliderComponent} b2
+ * @returns {Vector3 | null} The point at which the two bodies are touching, or null if they are not touching.
+ */
+export function vexToCav(b1, b2) {
+  return null;
 }
