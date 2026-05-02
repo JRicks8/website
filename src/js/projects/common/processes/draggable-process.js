@@ -6,10 +6,9 @@ import { GameState } from "../game/game-state.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { getMouseCoordsFromPixel } from "../util/window-utils.js";
 import { DraggableComponent } from "../components/draggable-body.js";
-import { getLocalPosition, getWorldForward, getWorldPosition } from "../util/transform-utils.js";
-import { addForceAtPosition } from "../util/physics-utils.js";
+import { getWorldPosition } from "../util/transform-utils.js";
 import { DebugProcess } from "./debug-process.js";
-import { Quaternion } from "../math/quaternion.js";
+import { addForceAtPosition, velocityAtPoint } from "../util/physics-utils.js";
 
 /** @type {DraggableComponent[]} */
 const _bodies = [];
@@ -22,7 +21,7 @@ let _draggedRigidbody = null;
 let _localDragPoint = null;
 
 let _dragging = false;
-let _dragStartDistance = 0;
+let _dragDesiredDistance = 0;
 
 /** @type {Camera | null} */
 let _camera = null;
@@ -33,6 +32,9 @@ let _objectClickedListener = null;
 let _wheelListener = null;
 /** @type {number | null} */
 let _mouseUpListener = null;
+
+let _kp = 4;
+let _kd = 9;
 
 /**
  * When the mouse is pressed down and a raycast is made and intersects
@@ -50,27 +52,22 @@ function startDragging(intersection) {
     return;
   }
 
+  _dragging = true;
+
   _draggedRigidbody = ComponentManager.getComponent(_dragComponent.entity, COMP_RIGIDBODY);
 
-  _dragging = true;
   const cameraWorldPos = new ThreeV3();
   _camera.getWorldPosition(cameraWorldPos);
 
-  const f = getWorldForward(_dragComponent.entity.transform);
-  _localDragPoint = Vector3.subtract(intersection.point, getWorldPosition(new Vector3(), _dragComponent.entity.transform));
-  const localDragDistance = _localDragPoint.magnitude;
-  const a = Vector3.cross(f, _localDragPoint);
-  const q = new Quaternion(1 + Vector3.dot(f, _localDragPoint.normalized), ...a).normalized;
-  _localDragPoint = f.rotate(q).multiply(localDragDistance);
-  console.log(_localDragPoint.magnitude);
+  _localDragPoint = Vector3.subtract(intersection.point, _dragComponent.entity.transform.position);
+  const m = _localDragPoint.magnitude;
+  _localDragPoint.normalize().rotate(_dragComponent.entity.transform.orientation.inverse()).multiply(m);
 
-  DebugProcess.drawPoints({ points: [getWorldPosition(_localDragPoint, _dragComponent.entity.transform)], color: new Color(0x00ff00), lifespan: 2 });
-
-  _dragStartDistance = Math.max(_dragComponent.entity.transform.position.distanceTo(cameraWorldPos), 1);
+  _dragDesiredDistance = Math.max(intersection.point.distanceTo(cameraWorldPos), 1);
 
   if (_wheelListener != null) EventDispatcher.stopListening('wheel', _wheelListener);
   _wheelListener = EventDispatcher.listenToEvent('wheel', (/**@type {WheelEvent}*/ wheelEvent) => {
-    _dragStartDistance -= wheelEvent.deltaY / 1000;
+    _dragDesiredDistance -= wheelEvent.deltaY / 1000;
   });
 
   if (_mouseUpListener != null) EventDispatcher.stopListening('mouseup', _mouseUpListener);
@@ -81,6 +78,26 @@ function startDragging(intersection) {
     if (_mouseUpListener != null) EventDispatcher.stopListening('mouseup', _mouseUpListener);
     if (_wheelListener != null) EventDispatcher.stopListening('wheel', _wheelListener);
   });
+}
+
+/**
+ * Gets the position of the mouse in world space by extended a vector from the 
+ * camera in the perceived direction of the mouse.
+ * @param {Camera} camera
+ * @returns {Vector3}
+ */
+function getMousePos(camera) {
+  const coords = getMouseCoordsFromPixel(GameState.mousePosition.x, GameState.mousePosition.y);
+  // Get the direction the mouse is pointing in using this three.js raycaster
+  const dummyRaycaster = new Raycaster();
+  dummyRaycaster.setFromCamera(new ThreeV2(...coords), camera);
+  const mousePos = new Vector3(...dummyRaycaster.ray.direction);
+  
+  // Calculate the desired (world) position
+  const cameraWorldPos = new ThreeV3();
+  camera.getWorldPosition(cameraWorldPos);
+  mousePos.multiply(_dragDesiredDistance).addv3(cameraWorldPos);
+  return mousePos;
 }
 
 export const DraggableProcess = {
@@ -120,43 +137,41 @@ export const DraggableProcess = {
       return;
     }
 
-    const coords = getMouseCoordsFromPixel(GameState.mousePosition.x, GameState.mousePosition.y);
+    const mousePos = getMousePos(_camera);
 
-    const dummyRaycaster = new Raycaster();
-    dummyRaycaster.setFromCamera(new ThreeV2(...coords), _camera);
-    const desiredPos = new Vector3(...dummyRaycaster.ray.direction);
-    desiredPos.multiply(_dragStartDistance);
-    const cameraWorldPos = new ThreeV3();
-    _camera.getWorldPosition(cameraWorldPos);
-    desiredPos.addv3(cameraWorldPos);
+    const rotatedLocalPoint = Vector3.rotate(_localDragPoint, _dragComponent.entity.transform.orientation);
 
-    const rotatedPoint = Vector3.rotate(_localDragPoint, _dragComponent.entity.transform.orientation);
-
-    DebugProcess.drawPoints({ points: [desiredPos], color: new Color(0xff0000) });
-    DebugProcess.drawPoints({ points: [getWorldPosition(rotatedPoint, _dragComponent.entity.transform)] });
+    // Desired (world) position
+    DebugProcess.drawPoints({ points: [mousePos], color: new Color(0xff0000) });
+    // Local drag point translated to world position
+    DebugProcess.drawPoints({ points: [getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint)] });
 
     DebugProcess.drawLine({ points: [
-      getWorldPosition(new Vector3(), _dragComponent.entity.transform),
-      getWorldPosition(rotatedPoint, _dragComponent.entity.transform)
+      getWorldPosition(_dragComponent.entity.transform),
+      getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint)
     ]});
 
     if (_draggedRigidbody?.entity) {
-      const worldDragPoint = getWorldPosition(rotatedPoint, _dragComponent.entity.transform);
-      const desiredVelocity = new Vector3(
-        (desiredPos.x - worldDragPoint.x) * 2,
-        (desiredPos.y - worldDragPoint.y) * 2,
-        (desiredPos.z - worldDragPoint.z) * 2
-      );
-      const difference = Vector3.subtract(desiredVelocity, _draggedRigidbody.bodyState.velocity);
-      const derivedForce = difference.multiply(_draggedRigidbody.bodyState.mass).divide(Math.max(dt, 0.0167));
-      addForceAtPosition(_draggedRigidbody, derivedForce, rotatedPoint);
-      /**
-       * v = (momentum * dt) / mass
-       * v * mass = momentum * dt
-       * (v * mass) / dt = momentum
-       */
+      const worldDragPoint = getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint);
+
+      const currentPointVelocity = velocityAtPoint(_draggedRigidbody, rotatedLocalPoint);
+      const positionError = Vector3.subtract(mousePos, worldDragPoint);
+      const desiredPointVelocity = Vector3.multiply(positionError, _kp);
+      const velocityError = Vector3.subtract(desiredPointVelocity, currentPointVelocity);
+      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.bodyState.mass, _kd);
+
+      addForceAtPosition(_draggedRigidbody, derivedForce, rotatedLocalPoint);
+      
+      DebugProcess.drawPoints({ points: [worldDragPoint], color: new Color(0x00ff00) });
+      DebugProcess.drawLine({
+        points: [
+          getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint),
+          Vector3.addv3(derivedForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
+        ]
+      });
+
     } else {
-      _dragComponent.entity.transform.position.setv3(desiredPos);
+      _dragComponent.entity.transform.position.setv3(mousePos);
     }
   },
 
@@ -175,7 +190,7 @@ export const DraggableProcess = {
     _bodies.length = 0;
     _dragComponent = null;
     _dragging = false;
-    _dragStartDistance = 0;
+    _dragDesiredDistance = 0;
     _camera = null;
   }
 };

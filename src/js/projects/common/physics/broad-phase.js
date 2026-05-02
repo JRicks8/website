@@ -14,15 +14,15 @@ export class BroadPhaseSolver {
    */
   solve(bodies) {
     for (const body of bodies) {
-      // @ts-expect-error
-      body.colliderComponent.colliderMesh.geometry.computeBoundingBox();
+      body.colliderComponent?.colliderMesh?.geometry.computeBoundingBox();
     }
 
     const res = [];
     for (let i = 0; i < bodies.length - 1; i++) {
       for (let j = bodies.length - 1; j > i; j--) {
-        // @ts-expect-error
-        if (bodies[i].colliderComponent.colliderMesh.geometry.boundingBox.intersectsBox(bodies[j].colliderComponent.colliderMesh.geometry.boundingBox)) {
+        const b1 = bodies[i].colliderComponent?.colliderMesh?.geometry.boundingBox;
+        const b2 = bodies[j].colliderComponent?.colliderMesh?.geometry.boundingBox;
+        if (b1 && b2 && b1.intersectsBox(b2)) {
           res.push({ r1: bodies[i], r2: bodies[j] });
         }
       }

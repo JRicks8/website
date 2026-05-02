@@ -1,22 +1,28 @@
+import { GameState } from "../game/game-state.js";
+
 /** @type {(dt: number) => void} dt */
 let _callback = (dt) => {};
-let _paused = true;
 
-let _interval = 0;
+let _interval = 16;
 let _last = 0;
 
-/** Performs a single tick cycle. */
-function tick() {
+/** 
+ * Performs a looping tick cycle, unless the game state is hard-paused or single == true. 
+ * @param {DOMHighResTimeStamp} [snapshot]
+ * @param {boolean} [single]
+ */
+function tick(snapshot, single = false) {
+  let now = performance.now();
 
-  let now = Date.now();
-  const dt = (now - _last);
+  let dt = now - _last;
+  let adjInterval = _interval;
 
-  if (dt >= _interval) {
+  if (dt >= adjInterval) {
     _last = now;
     _callback(dt / 1000); // dt is in ms. Convert ms -> s
   }
 
-  if (_paused) return;
+  if (GameState.hardPaused || single) return;
   window.requestAnimationFrame(tick);
 }
 
@@ -24,14 +30,14 @@ function tick() {
 export const TickProcess = {
   /** Unpauses and starts the tick cycle. */
   start() {
-    _paused = false;
-    _last = Date.now();
+    _last = performance.now();
     window.requestAnimationFrame(tick);
   },
 
-  /** Prevents the tick cycle from continuing. */
-  pause() {
-    _paused = true;
+  /** @param {number} dt */
+  singleStep(dt) {
+    _last = performance.now() - dt;
+    tick(undefined, true);
   },
 
   /**
@@ -42,13 +48,12 @@ export const TickProcess = {
     _callback = newCallback;
   },
 
-  // TODO: Manual throttle of tick duration
   /**
    * The desired amount of time in milliseconds to spend before advancing to the next tick.
    * Reducing this effectively increases framerate and makes things look a bit better at the cost of 
    * more compute required. Increasing this may improve performance.
-   * Setting this to zero will make the application run as fast as possible.
-   * @param {number} ms Time in milliseconds
+   * Setting this to one will make the application run as fast as possible.
+   * @param {number} ms Time in milliseconds (minimum of 1)
    */
   setTickDuration(ms) {
     if (!ms && ms !== 0) return;

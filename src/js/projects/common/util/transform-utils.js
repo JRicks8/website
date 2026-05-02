@@ -3,10 +3,11 @@ import { Vector3 } from "../math/vector3.js";
 
 /**
  * Calculates the world position of v local to the given transform.
- * @param {import("../math/vector3.js").Vector3Like} v 
+ * The world position is calculated irrespective of orientation (TODO)
  * @param {TransformComponent} transform 
+ * @param {import("../math/vector3.js").Vector3Like} [v] 
  */
-export function getWorldPosition(v, transform) {
+export function getWorldPosition(transform, v = new Vector3) {
   const res = new Vector3().copy(v).addv3(transform.position);
   let next = transform;
   while (transform.parent) {
@@ -23,7 +24,7 @@ export function getWorldPosition(v, transform) {
  * @returns {Vector3}
  */
 export function getLocalPosition(v, transform) {
-  
+  // TODO
 }
 
 /**

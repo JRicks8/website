@@ -1,9 +1,9 @@
-import { PerspectiveCamera, Raycaster, Scene, Vector2 as ThreeV2, WebGLRenderer } from "three";
+import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2 as ThreeV2, WebGLRenderer } from "three";
 import { resizeRenderView } from "../projects/common/util/three-utils.js";
 import { GameState } from "../projects/common/game/game-state.js";
 import { TickProcess } from "../projects/common/processes/tick-process.js";
 import { EventDispatcher } from "../projects/common/event/event-dispatcher.js";
-import { buildDraggableBody } from "../projects/birds/factory/draggable-body-factory.js";
+import { entityBuilder } from "../projects/birds/builder/entity-builder.js";
 import { Registry } from "../projects/common/game/register.js";
 import { MeshRenderingProcess } from "../projects/common/processes/mesh-rendering-process.js";
 import { PhysicsProcess } from "../projects/common/processes/physics-process.js";
@@ -17,6 +17,11 @@ import { ScriptProcess } from "../projects/common/processes/script-process.js";
 import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js";
 import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
 import { DebugProcess } from "../projects/common/processes/debug-process.js";
+import { RigidbodyComponent } from "../projects/common/components/rigidbody.js";
+import { BoxColliderComponent } from "../projects/common/components/collider/box-collider.js";
+import { DraggableComponent } from "../projects/common/components/draggable-body.js";
+import { MeshRendererComponent } from "../projects/common/components/mesh-renderer.js";
+import { SphereColliderComponent } from "../projects/common/components/collider/sphere-collider.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
@@ -28,17 +33,27 @@ GameState.scene = scene;
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-document.body.appendChild(renderer.domElement);
+const first = document.body.children.item(0);
+if (first) {
+  document.body.insertBefore(renderer.domElement, first);
+}
 
 // Manage events ------------------------------------------------------------
 InputListener.attachListeners();
 
 EventDispatcher.listenToEvent('focus', () => {
+  GameState.hardPaused = false;
   TickProcess.start();
 });
 
 EventDispatcher.listenToEvent('blur', () => {
-  TickProcess.pause();
+  GameState.hardPaused = true;
+});
+
+EventDispatcher.listenToEvent('keydown', (/**@type {KeyboardEvent}*/ keyEvent) => {
+  if (keyEvent.key === 'Escape') {
+    GameState.paused = !GameState.paused;
+  }
 });
   
 EventDispatcher.listenToEvent('resize', () => resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight));
@@ -69,13 +84,35 @@ DebugProcess.initialize(scene);
 
 Registry.setContext('physics');
 
-const b1 = buildDraggableBody(Registry.getUniqueId(), scene, 0.5);
-Registry.register(b1, b1.id);
-b1.transform.position.set(2, 0, -5);
+const entity1 = entityBuilder()
+  .colliderComponent(new SphereColliderComponent(), scene)
+  .draggableComponent(new DraggableComponent())
+  .meshRendererComponent(
+    new MeshRendererComponent(
+      new Mesh(
+        new SphereGeometry(),
+        new MeshNormalMaterial()
+      )
+    ), scene
+  )
+  .rigidbodyComponent(new RigidbodyComponent())
+  .build();
+entity1.transform.position.set(2, 0, -5)
 
-const b2 = buildDraggableBody(Registry.getUniqueId(), scene, 2);
-Registry.register(b2, b2.id);
-b2.transform.position.set(-2, 0, -5);
+const entity2 = entityBuilder()
+  .colliderComponent(new SphereColliderComponent(), scene)
+  .draggableComponent(new DraggableComponent())
+  .meshRendererComponent(
+    new MeshRendererComponent(
+      new Mesh(
+        new SphereGeometry(),
+        new MeshNormalMaterial()
+      )
+    ), scene
+  )
+  .rigidbodyComponent(new RigidbodyComponent())
+  .build();
+entity2.transform.position.set(-2, 0, -5);
 
 // Player setup -----------------------------------------------
 PlayerProcess.setup(scene, camera);
@@ -93,17 +130,18 @@ TickProcess.setCallback((dt) => {
 
   DraggableProcess.update(dt);
 
-  PhysicsProcess.step(dt);
+  console.log(GameState.paused);
+  if (!GameState.paused) PhysicsProcess.step(dt);
   PhysicsProcess.update();
 
   ScriptProcess.update(dt);
 
   MeshRenderingProcess.update();
 
-  DebugProcess.beforeRender();
+  if (!GameState.paused) DebugProcess.beforeRender();
   ScriptProcess.lateUpdate(dt);
   renderer.render(scene, camera);
-  DebugProcess.afterRender(dt);
+  if (!GameState.paused) DebugProcess.afterRender(dt);
 });
-TickProcess.setTickDuration(0);
+TickProcess.setTickDuration(16);
 TickProcess.start();

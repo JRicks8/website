@@ -1,12 +1,13 @@
-import { Camera, Euler, Object3D, Quaternion, Scene, Vector3 as ThreeV3 } from "three";
+import { Camera, Object3D, Quaternion, Scene, Vector3 as ThreeV3 } from "three";
 import { PlayerControllerComponent } from "../components/player-controller.js";
 import { EventDispatcher } from "../event/event-dispatcher.js";
 import { GameState } from "../game/game-state.js";
 import { Vector2 } from "../math/vector2.js";
 import { Vector3 } from "../math/vector3.js";
-import { clamp, clampWrap, toDegrees } from "../math/common.js";
+import { clamp, clampWrap } from "../math/common.js";
 
 let _initialized = false;
+
 let _lastMousePosition = new Vector2();
 
 /** @type {{[key: string]: boolean}} */
@@ -105,9 +106,7 @@ export const PlayerProcess = {
     _lastMousePosition.setv2(GameState.mousePosition);
   },
 
-  /**
-   * @returns {Object3D}
-   */
+  /** @returns {Object3D} */
   getPlayerObject: () => {
     return _playerObject;
   }

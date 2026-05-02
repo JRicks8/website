@@ -1,5 +1,5 @@
 import { BufferGeometry, Mesh, MeshNormalMaterial } from "three";
-import { ColliderComponent } from "../class/collider.js";
+import { ColliderComponent } from "./collider.js";
 
 export const COLLIDER_CONCAVE = 'ConcaveCollider';
 

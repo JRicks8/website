@@ -54,7 +54,7 @@ export class Matrix3x3 {
         newMatrix.value[i][j] = m.value[i][j] * s;
       }
     }
-    return m;
+    return newMatrix;
   }
 
   /**
@@ -138,17 +138,17 @@ export class Matrix3x3 {
   multiplyScalar(s) {
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        this.value[i][j] = this.value[i][j] * s;  
+        this.value[i][j] *= s;  
       }
     }
   }
 
   /** 
    * Transposes this matrix.
-   * @returns This matrix
+   * @returns {this}
    */
   transpose() {
-    this.value[0].map((_, c) => this.value.map(r => r[c]));
+    this.value = this.value[0].map((_, c) => this.value.map(r => r[c]));
     return this;
   }
 

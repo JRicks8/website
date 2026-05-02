@@ -1,4 +1,4 @@
-import { RigidbodyComponent } from "../components/rigidbody.js";
+import { Restraint, RESTRAINT_POSITION, RESTRAINT_POSITION_AXIS, RESTRAINT_ROTATION_AXIS, RigidbodyComponent } from "../components/rigidbody.js";
 import { COMP_TRANSFORM, TransformComponent } from "../components/transform.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
@@ -9,6 +9,7 @@ import { BroadPhaseSolver } from "../physics/broad-phase.js";
 import { Quaternion as ThreeQuaternion } from "three";
 import { ComponentManager } from "../game/component-manager.js";
 import { NarrowPhaseSolver } from "../collision/narrow-phase.js";
+import { applyLinearAxisRestraint, applyLinearRestraint, applyRotationAxisRestraint } from "../util/physics-utils.js";
 
 // Excellent resource: https://graphics.pixar.com/pbm2001/pdf/notesg.pdf
 
@@ -20,6 +21,25 @@ const _bodies = [];
 const _broadPhaseSolver = new BroadPhaseSolver();
 const _narrowPhaseSolver = new NarrowPhaseSolver();
 
+/** @type {{[key: string]: (r: Restraint, v: Vector3, q: Quaternion) => void}} */
+const _restraintMapper = {
+  [RESTRAINT_POSITION]: (r, v, q) => applyLinearRestraint(r, v),
+  [RESTRAINT_POSITION_AXIS]: (r, v, q) => applyLinearAxisRestraint(r, v),
+  [RESTRAINT_ROTATION_AXIS]: (r, v, q) => applyRotationAxisRestraint(r, q)
+};
+
+/**
+ * Applies all active restraints to the proposed change in position and orientation
+ * @param {Restraint[]} restraints 
+ * @param {Vector3} deltaPosition 
+ * @param {Quaternion} deltaOrientation 
+ */
+function applyRestraints(restraints, deltaPosition, deltaOrientation) {
+  for (const restraint of restraints) {
+    if (restraint.type) _restraintMapper[restraint.type](restraint, deltaPosition, deltaOrientation);
+  }
+}
+
 /**
  * @param {number} dt
  * @param {RigidbodyComponent} body
@@ -30,12 +50,15 @@ function stepBody(dt, body, index) {
 
   if (!body.noForces) {
     // Apply primitive forces
-    bodyState.momentum.addv3(body.bodyState.force);
-    bodyState.angularMomentum.addv3(bodyState.torque);
+    const adjustedForce = Vector3.multiply(body.bodyState.force, dt);
+    bodyState.momentum.addv3(adjustedForce);
+
+    const adjustedTorque = Vector3.multiply(bodyState.torque, dt);
+    bodyState.angularMomentum.addv3(adjustedTorque);
     
     // Calculate velocities
     bodyState.velocity = Vector3.divide(
-      Vector3.multiply(bodyState.momentum, dt), 
+      bodyState.momentum, 
       bodyState.mass
     );
 
@@ -43,8 +66,8 @@ function stepBody(dt, body, index) {
 
     const rT = Matrix3x3.copy(bodyState.rMatrix).transpose();
     bodyState.iInv = Matrix3x3.multiplyMatrix(
-      Matrix3x3.multiplyMatrix(bodyState.rMatrix, rT), 
-      bodyState.iBodyInv
+      Matrix3x3.multiplyMatrix(bodyState.rMatrix, bodyState.iBodyInv), 
+      rT
     );
 
     bodyState.angularVelocity = Matrix3x3.multiplyVector3(bodyState.iInv, bodyState.angularMomentum);
@@ -56,13 +79,16 @@ function stepBody(dt, body, index) {
   }
 
   // Apply velocities to spatial state
-  bodyState.position.addv3(
-    Vector3.multiply(bodyState.velocity, dt));
+  let deltaPosition = Vector3.multiply(bodyState.velocity, dt);
 
-  const deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...bodyState.angularVelocity), bodyState.orientation);
-  deltaOrientation.multiplyScalar(0.5 * dt);
-  bodyState.orientation.add(deltaOrientation);
-  bodyState.orientation.normalize();
+  let deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...bodyState.angularVelocity), bodyState.orientation)
+    .multiplyScalar(0.5 * dt);
+
+  // Apply restraints
+  applyRestraints(body.restraints, deltaPosition, deltaOrientation);
+
+  bodyState.position.addv3(deltaPosition);
+  bodyState.orientation.add(deltaOrientation).normalize();
 
   // Zero-out the forces
   bodyState.force = new Vector3();

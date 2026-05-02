@@ -1,6 +1,6 @@
 import { BufferGeometry, Mesh } from "three";
 import { Vector3 } from "../../math/vector3.js";
-import { Component } from "./component.js";
+import { Component } from "../class/component.js";
 
 export const COMP_COLLIDER = 'Collider';
 

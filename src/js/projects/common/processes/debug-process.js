@@ -28,6 +28,22 @@ export const DebugProcess = {
     _scene = scene;
   },
 
+  beforeRender: () => {},
+
+  /** @param {number} dt */
+  afterRender: (dt) => {
+    const keep = [];
+    for (const shape of _shapes) {
+      shape.lifespan -= dt;
+      if (shape.lifespan <= 0) {
+        _scene.remove(shape.object);
+        continue;
+      }
+      keep.push(shape);
+    }
+    _shapes = keep;
+  },
+
   /** @param {Config} config */
   drawPoints: (config) => {
     const dotGeometry = new BufferGeometry();
@@ -99,21 +115,5 @@ export const DebugProcess = {
       object: mesh,
       lifespan: lifespan
     });
-  },
-
-  beforeRender: () => {},
-
-  /** @param {number} dt */
-  afterRender: (dt) => {
-    const keep = [];
-    for (const shape of _shapes) {
-      shape.lifespan -= dt;
-      if (shape.lifespan <= 0) {
-        _scene.remove(shape.object);
-        continue;
-      }
-      keep.push(shape);
-    }
-    _shapes = keep;
   }
 };
