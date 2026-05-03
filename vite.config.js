@@ -19,7 +19,13 @@ export default defineConfig({
     outDir: "../dist", // Relative to root defined above ^
     emptyOutDir: true,
     rollupOptions: {
-      input: pages
-    }
+      input: pages,
+      output: {
+        assetFileNames: "assets/[hash][extname]",
+        // Keep JS next to hashed assets so import.meta.url + relative PNG paths stay under /assets/.
+        chunkFileNames: "assets/[hash].js",
+        entryFileNames: "assets/[hash].js",
+      },
+    },
   }
 });
