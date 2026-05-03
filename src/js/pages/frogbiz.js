@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ****************  WARNING !!! ****************
  * Ahead of you is truly terrible code! I wrote this 
