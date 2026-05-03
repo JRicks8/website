@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Contact } from "../collision/contact.js";
 import { ColliderComponent, COMP_COLLIDER } from "../components/collider/collider.js";
 import { RigidbodyComponent } from "../components/rigidbody.js";
@@ -21,11 +20,13 @@ export class NarrowPhaseSolver {
       /** @type {ColliderComponent} */
       const c2 = ComponentManager.getComponent(r2.entity, COMP_COLLIDER);
 
-      const test = getIntersectionTest(c1.colliderType, c2.colliderType);
-      const point = test(c1, c2);
-      if (point) {
-        DebugProcess.drawPoints({ points: [point] });
-        GameState.paused = true;
+      if (c1.colliderType && c2.colliderType) {
+        const test = getIntersectionTest(c1.colliderType, c2.colliderType);
+        const point = test(c1, c2);
+        if (point) {
+          DebugProcess.drawPoints({ points: [point] });
+          GameState.paused = true;
+        }
       }
     }
     return contacts;

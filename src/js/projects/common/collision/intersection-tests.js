@@ -1,14 +1,13 @@
-// @ts-nocheck
-import { BoxGeometry } from "three";
-import { Entity } from "../class/entity.js";
 import { Vector3 } from "../math/vector3.js";
 import { ConvexColliderComponent } from "../components/collider/convex-polyhedron-collider.js";
 import { ConcaveColliderComponent } from "../components/collider/concave-collider.js";
 import { ColliderComponent } from "../components/collider/collider.js";
+import { BoxColliderComponent } from "../components/collider/box-collider.js";
+import { SphereColliderComponent } from "../components/collider/sphere-collider.js";
 
 /**
- * @param {ColliderComponent} s1 
- * @param {ColliderComponent} s2 
+ * @param {SphereColliderComponent} s1 
+ * @param {SphereColliderComponent} s2 
  * @returns {Vector3 | null} The point at which the two spheres are touching, or null if they are not touching.
  */
 export function sphToSph(s1, s2) {
@@ -28,11 +27,14 @@ export function sphToSph(s1, s2) {
 }
 
 /**
- * @param {ColliderComponent} b1
- * @param {ColliderComponent} b2
+ * @param {BoxColliderComponent} b1
+ * @param {BoxColliderComponent} b2
  * @returns {Vector3 | null} The point at which the two boxes are touching, or null if they are not touching.
  */
 export function boxToBox(b1, b2) {
+  // Use SAT to determine if the boxes are colliding
+  
+
   return null;
 }
 

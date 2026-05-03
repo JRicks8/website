@@ -1,4 +1,4 @@
-import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2 as ThreeV2, WebGLRenderer } from "three";
+import { Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2 as ThreeV2, WebGLRenderer } from "three";
 import { resizeRenderView } from "../projects/common/util/three-utils.js";
 import { GameState } from "../projects/common/game/game-state.js";
 import { TickProcess } from "../projects/common/processes/tick-process.js";
@@ -18,7 +18,6 @@ import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js
 import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
 import { DebugProcess } from "../projects/common/processes/debug-process.js";
 import { RigidbodyComponent } from "../projects/common/components/rigidbody.js";
-import { BoxColliderComponent } from "../projects/common/components/collider/box-collider.js";
 import { DraggableComponent } from "../projects/common/components/draggable-body.js";
 import { MeshRendererComponent } from "../projects/common/components/mesh-renderer.js";
 import { SphereColliderComponent } from "../projects/common/components/collider/sphere-collider.js";
@@ -32,11 +31,7 @@ GameState.scene = scene;
 
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-
-const first = document.body.children.item(0);
-if (first) {
-  document.body.insertBefore(renderer.domElement, first);
-}
+document.body.appendChild(renderer.domElement);
 
 // Manage events ------------------------------------------------------------
 InputListener.attachListeners();
@@ -55,7 +50,7 @@ EventDispatcher.listenToEvent('keydown', (/**@type {KeyboardEvent}*/ keyEvent) =
     GameState.paused = !GameState.paused;
   }
 });
-  
+
 EventDispatcher.listenToEvent('resize', () => resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight));
 resizeRenderView(renderer, camera, window.innerWidth, window.innerHeight);
 
