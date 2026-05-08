@@ -131,9 +131,6 @@ export const PhysicsProcess = {
     });
 
     const maybeColliding = _broadPhaseSolver.solve(_bodies);
-    if (maybeColliding.length > 0) {
-      console.log(maybeColliding);
-    }
     const contacts = _narrowPhaseSolver.solve(maybeColliding);
     // TODO resolve contacts
   },

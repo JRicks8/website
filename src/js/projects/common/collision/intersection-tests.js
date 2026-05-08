@@ -35,8 +35,6 @@ export function sphToSph(s1, s2) {
 export function boxToBox(b1, b2) {
   // Use SAT to determine if the boxes are colliding
   const thing = getBoxSeparatingAxis(b1, b2);
-  if (thing)
-    console.log(thing);
 
   return null;
 }
