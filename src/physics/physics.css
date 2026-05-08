@@ -22,10 +22,9 @@ div {
   margin-top: 0.5rem;
 }
 
-p {
-  padding: 0;
-  margin: 0;
+pre {
   color: white;
   font-family: monospace;
-  white-space: pre;
+  pointer-events: none;
+  user-select: none;
 }

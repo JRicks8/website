@@ -102,6 +102,13 @@ export class Quaternion {
     this.z = z;
   }
 
+  *[Symbol.iterator]() {
+    yield this.w;
+    yield this.x;
+    yield this.y;
+    yield this.z;
+  }
+
   /**
    * @param {number} w 
    * @param {number} x 

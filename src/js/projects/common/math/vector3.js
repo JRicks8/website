@@ -33,7 +33,7 @@ export class Vector3 {
    * @param {Vector3Like[]} vectors
    * @returns {Vector3}
    */
-  static addv3(...vectors) {
+  static add(...vectors) {
     const res = new Vector3();
     vectors.forEach(v => {
       res.x += v.x;

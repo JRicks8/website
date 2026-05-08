@@ -1,26 +1,27 @@
-import { Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2 as ThreeV2, WebGLRenderer } from "three";
-import { resizeRenderView } from "../projects/common/util/three-utils.js";
-import { GameState } from "../projects/common/game/game-state.js";
-import { TickProcess } from "../projects/common/processes/tick-process.js";
-import { EventDispatcher } from "../projects/common/event/event-dispatcher.js";
-import { entityBuilder } from "../projects/birds/builder/entity-builder.js";
-import { Registry } from "../projects/common/game/register.js";
-import { MeshRenderingProcess } from "../projects/common/processes/mesh-rendering-process.js";
-import { PhysicsProcess } from "../projects/common/processes/physics-process.js";
-import { buildFlyingFPController } from "../projects/common/factory/player-controller-factory.js";
-import { InputListener } from "../projects/common/event/input-listener.js";
-import { COMP_PLAYER_CONTROLLER, PlayerControllerComponent } from "../projects/common/components/player-controller.js";
-import { PlayerProcess } from "../projects/common/processes/player-process.js";
-import { ComponentManager } from "../projects/common/game/component-manager.js";
-import { DraggableProcess } from "../projects/common/processes/draggable-process.js";
-import { ScriptProcess } from "../projects/common/processes/script-process.js";
-import { getMouseCoordsFromPixel } from "../projects/common/util/window-utils.js";
-import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../projects/common/util/layers.js";
-import { DebugProcess } from "../projects/common/processes/debug-process.js";
-import { RigidbodyComponent } from "../projects/common/components/rigidbody.js";
-import { DraggableComponent } from "../projects/common/components/draggable-body.js";
-import { MeshRendererComponent } from "../projects/common/components/mesh-renderer.js";
-import { SphereColliderComponent } from "../projects/common/components/collider/sphere-collider.js";
+import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2 as ThreeV2, WebGLRenderer } from "three";
+import { resizeRenderView } from "../js/projects/common/util/three-utils.js";
+import { GameState } from "../js/projects/common/game/game-state.js";
+import { TickProcess } from "../js/projects/common/processes/tick-process.js";
+import { EventDispatcher } from "../js/projects/common/event/event-dispatcher.js";
+import { entityBuilder } from "../js/projects/birds/builder/entity-builder.js";
+import { Registry } from "../js/projects/common/game/register.js";
+import { MeshRenderingProcess } from "../js/projects/common/processes/mesh-rendering-process.js";
+import { PhysicsProcess } from "../js/projects/common/processes/physics-process.js";
+import { buildFlyingFPController } from "../js/projects/common/factory/player-controller-factory.js";
+import { InputListener } from "../js/projects/common/event/input-listener.js";
+import { COMP_PLAYER_CONTROLLER, PlayerControllerComponent } from "../js/projects/common/components/player-controller.js";
+import { PlayerProcess } from "../js/projects/common/processes/player-process.js";
+import { ComponentManager } from "../js/projects/common/game/component-manager.js";
+import { DraggableProcess } from "../js/projects/common/processes/draggable-process.js";
+import { ScriptProcess } from "../js/projects/common/processes/script-process.js";
+import { getMouseCoordsFromPixel } from "../js/projects/common/util/window-utils.js";
+import { LAYER_IGNORE_ALL, LAYER_IGNORE_RAYCAST } from "../js/projects/common/util/layers.js";
+import { DebugProcess } from "../js/projects/common/processes/debug-process.js";
+import { RigidbodyComponent } from "../js/projects/common/components/rigidbody.js";
+import { DraggableComponent } from "../js/projects/common/components/draggable-body.js";
+import { MeshRendererComponent } from "../js/projects/common/components/mesh-renderer.js";
+import { SphereColliderComponent } from "../js/projects/common/components/collider/sphere-collider.js";
+import { BoxColliderComponent } from "../js/projects/common/components/collider/box-collider.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
@@ -80,12 +81,12 @@ DebugProcess.initialize(scene);
 Registry.setContext('physics');
 
 const entity1 = entityBuilder()
-  .colliderComponent(new SphereColliderComponent(), scene)
+  .colliderComponent(new BoxColliderComponent(), scene)
   .draggableComponent(new DraggableComponent())
   .meshRendererComponent(
     new MeshRendererComponent(
       new Mesh(
-        new SphereGeometry(),
+        new BoxGeometry(),
         new MeshNormalMaterial()
       )
     ), scene
@@ -95,12 +96,12 @@ const entity1 = entityBuilder()
 entity1.transform.position.set(2, 0, -5)
 
 const entity2 = entityBuilder()
-  .colliderComponent(new SphereColliderComponent(), scene)
+  .colliderComponent(new BoxColliderComponent(), scene)
   .draggableComponent(new DraggableComponent())
   .meshRendererComponent(
     new MeshRendererComponent(
       new Mesh(
-        new SphereGeometry(),
+        new BoxGeometry(),
         new MeshNormalMaterial()
       )
     ), scene
@@ -125,7 +126,6 @@ TickProcess.setCallback((dt) => {
 
   DraggableProcess.update(dt);
 
-  console.log(GameState.paused);
   if (!GameState.paused) PhysicsProcess.step(dt);
   PhysicsProcess.update();
 
