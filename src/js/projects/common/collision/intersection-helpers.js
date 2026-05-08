@@ -57,15 +57,6 @@ export function getBoxSeparatingAxis(c0, c1) {
 
   const D = Vector3.subtract(B.C, A.C);
 
-  const axes = [
-    A.A0,
-    A.A1,
-    A.A2,
-    B.B0,
-    B.B1,
-    B.B2,
-  ];
-
   // |L dot D|
   const isSeparated = 
     testSeparationAxis(A, B, A.A0, D)
@@ -83,6 +74,8 @@ export function getBoxSeparatingAxis(c0, c1) {
     || testSeparationAxis(A, B, Vector3.cross(A.A2, B.B0), D)
     || testSeparationAxis(A, B, Vector3.cross(A.A2, B.B1), D)
     || testSeparationAxis(A, B, Vector3.cross(A.A2, B.B2), D);
+
+  console.log('touching? ', !isSeparated);
 
   if (isSeparated) return null;
 

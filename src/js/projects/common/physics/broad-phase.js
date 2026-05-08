@@ -31,14 +31,14 @@ export class BroadPhaseSolver {
 
           DebugProcess.drawPoints({
             points: [
-              m1.position, bb1.min,
-              m1.position, bb1.max,
-              m1.position, new Vector3(bb1.min.x, bb1.max.y, bb1.min.z),
-              m1.position, new Vector3(bb1.max.x, bb1.min.y, bb1.min.z),
-              m1.position, new Vector3(bb1.min.x, bb1.min.y, bb1.max.z),
-              m1.position, new Vector3(bb1.max.x, bb1.max.y, bb1.min.z),
-              m1.position, new Vector3(bb1.max.x, bb1.min.y, bb1.max.z),
-              m1.position, new Vector3(bb1.min.x, bb1.max.y, bb1.max.z),
+              bb1.min,
+              bb1.max,
+              new Vector3(bb1.min.x, bb1.max.y, bb1.min.z),
+              new Vector3(bb1.max.x, bb1.min.y, bb1.min.z),
+              new Vector3(bb1.min.x, bb1.min.y, bb1.max.z),
+              new Vector3(bb1.max.x, bb1.max.y, bb1.min.z),
+              new Vector3(bb1.max.x, bb1.min.y, bb1.max.z),
+              new Vector3(bb1.min.x, bb1.max.y, bb1.max.z),
             ],
             size: 10
           });
