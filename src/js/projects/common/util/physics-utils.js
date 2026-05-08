@@ -75,7 +75,7 @@ export function addForceAtPosition(rb, force, point) {
  * @returns {Vector3} 
  */
 export function velocityAtPoint(rb, point) {
-  return Vector3.addv3(
+  return Vector3.add(
     Vector3.cross(
       rb.bodyState.angularVelocity, 
       point

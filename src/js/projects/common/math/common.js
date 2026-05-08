@@ -38,3 +38,12 @@ export function toDegrees(r) {
 export function toRadians(d) {
   return d / 57.295779;
 }
+
+/**
+ * Returns the sign of n
+ * @param {number} n 
+ * @returns {-1 | 1 | 0}
+ */
+export function sign(n) {
+  return n ? n < 0 ? -1 : 1 : 0;
+}

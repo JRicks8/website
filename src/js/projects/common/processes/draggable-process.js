@@ -166,7 +166,7 @@ export const DraggableProcess = {
       DebugProcess.drawLine({
         points: [
           getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint),
-          Vector3.addv3(derivedForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
+          Vector3.add(derivedForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
         ]
       });
 
