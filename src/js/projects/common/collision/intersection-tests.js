@@ -4,7 +4,7 @@ import { ConcaveColliderComponent } from "../components/collider/concave-collide
 import { ColliderComponent } from "../components/collider/collider.js";
 import { BoxColliderComponent } from "../components/collider/box-collider.js";
 import { SphereColliderComponent } from "../components/collider/sphere-collider.js";
-import { getBoxSeparatingAxis } from "./intersection-helpers.js";
+import { testBoxBoxIntersection } from "./intersection-helpers.js";
 
 /**
  * @param {SphereColliderComponent} s1 
@@ -34,7 +34,10 @@ export function sphToSph(s1, s2) {
  */
 export function boxToBox(b1, b2) {
   // Use SAT to determine if the boxes are colliding
-  const thing = getBoxSeparatingAxis(b1, b2);
+  const axes = testBoxBoxIntersection(b1, b2);
+  if (axes.intersecting) {
+    
+  }
 
   return null;
 }

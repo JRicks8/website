@@ -2,17 +2,18 @@ import { BoxColliderComponent } from "../components/collider/box-collider.js";
 import { Vector3 } from "../math/vector3.js";
 import { getWorldPosition } from "../util/transform-utils.js";
 import { sign } from "../math/common.js";
+import { DebugProcess } from "../processes/debug-process.js";
 
 /**
- * Tests a specified axis for separation.
+ * Tests a specified axis for separation between two boxes.
  * @see https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
  * @param {any} A
  * @param {any} B
  * @param {Vector3} L
  * @param {Vector3} D
- * @returns {boolean} True if the vertices of the boxes, when projected onto L, do not overlap.
+ * @returns {boolean} True if the half extents of the boxes, when projected onto L, do not overlap.
  */
-function testSeparationAxis(A, B, L, D) {
+function boxSAT(A, B, L, D) {
   return Math.abs(Vector3.dot(L, D)) > 
     (A.a0 * sign(Vector3.dot(L, A.A0)) * Vector3.dot(L, A.A0)) + (B.b0 * sign(Vector3.dot(L, B.B0)) * Vector3.dot(L, B.B0))
     + (A.a1 * sign(Vector3.dot(L, A.A1)) * Vector3.dot(L, A.A1)) + (B.b1 * sign(Vector3.dot(L, B.B1)) * Vector3.dot(L, B.B1))
@@ -20,16 +21,16 @@ function testSeparationAxis(A, B, L, D) {
 }
 
 /**
- * Returns the axis that separates the two boxes, if any.
+ * Returns all axes that the boxes intersect on (if any).
  * @see https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
  * @param {BoxColliderComponent} c0
  * @param {BoxColliderComponent} c1
- * @returns {Vector3 | null}
+ * @returns {{ intersecting: boolean, axes: Vector3[] }}
  */
-export function getBoxSeparatingAxis(c0, c1) {
+export function testBoxBoxIntersection(c0, c1) {
   const C0Transform = c0.entity?.transform;
   const C1Transform = c1.entity?.transform;
-  if (!C0Transform || !C1Transform) return null;
+  if (!C0Transform || !C1Transform) return { intersecting: false, axes: []};
 
   const A = {
     C: getWorldPosition(C0Transform),
@@ -40,7 +41,7 @@ export function getBoxSeparatingAxis(c0, c1) {
     a1: c0.geometry.parameters.height / 2,
     a2: c0.geometry.parameters.depth / 2
   };
-
+  
   const B = {
     C: getWorldPosition(C1Transform),
     B0: Vector3.right.rotate(C1Transform.orientation),
@@ -55,36 +56,33 @@ export function getBoxSeparatingAxis(c0, c1) {
   // Translation: Axes to test on are each of the directions A or B, or the cross product of the two. (15 possible)
   // This takes roughly 0.035 ms in worst case scenario, on my machine
 
+  const axes = [
+    A.A0,
+    A.A1,
+    A.A2,
+    B.B0,
+    B.B1,
+    B.B2,
+    Vector3.cross(A.A0, B.B0),
+    Vector3.cross(A.A0, B.B1),
+    Vector3.cross(A.A0, B.B2),
+    Vector3.cross(A.A1, B.B0),
+    Vector3.cross(A.A1, B.B1),
+    Vector3.cross(A.A1, B.B2),
+    Vector3.cross(A.A2, B.B0),
+    Vector3.cross(A.A2, B.B1),
+    Vector3.cross(A.A2, B.B2)
+  ];
+
   const D = Vector3.subtract(B.C, A.C);
 
-  // |L dot D|
-  const isSeparated = 
-    testSeparationAxis(A, B, A.A0, D)
-    || testSeparationAxis(A, B, A.A1, D)
-    || testSeparationAxis(A, B, A.A2, D)
-    || testSeparationAxis(A, B, B.B0, D)
-    || testSeparationAxis(A, B, B.B1, D)
-    || testSeparationAxis(A, B, B.B2, D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A0, B.B0), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A0, B.B1), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A0, B.B2), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A1, B.B0), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A1, B.B1), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A1, B.B2), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A2, B.B0), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A2, B.B1), D)
-    || testSeparationAxis(A, B, Vector3.cross(A.A2, B.B2), D);
-
-  console.log('touching? ', !isSeparated);
-
-  if (isSeparated) return null;
-
-  // DebugProcess.drawLine({ points: [ C0, Vector3.add(C0, A0) ], color: new Color(0xff0000) });
-  // DebugProcess.drawLine({ points: [ C0, Vector3.add(C0, A1) ], color: new Color(0x00ff00) });
-  // DebugProcess.drawLine({ points: [ C0, Vector3.add(C0, A2) ], color: new Color(0x0000ff) });
-
-  // Determine where the collision is occurring
-
-
-  return null;
+  let intersectingAxes = [];
+  for (const axis of axes)
+    if (!boxSAT(A, B, axis, D))
+      intersectingAxes.push(axis);
+  
+  return {
+    intersecting: intersectingAxes.length === 15,
+    axes: intersectingAxes
+  };
 }

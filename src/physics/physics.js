@@ -20,11 +20,12 @@ import { DebugProcess } from "../js/projects/common/processes/debug-process.js";
 import { RigidbodyComponent } from "../js/projects/common/components/rigidbody.js";
 import { DraggableComponent } from "../js/projects/common/components/draggable-body.js";
 import { MeshRendererComponent } from "../js/projects/common/components/mesh-renderer.js";
-import { SphereColliderComponent } from "../js/projects/common/components/collider/sphere-collider.js";
 import { BoxColliderComponent } from "../js/projects/common/components/collider/box-collider.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
+camera.layers.enable(0);
+camera.layers.enable(1);
 GameState.mainCamera = camera;
 
 const scene = new Scene();
@@ -120,23 +121,25 @@ Registry.register(player, player.id);
 
 // Game loop -------------------------------------------------
 TickProcess.setCallback((dt) => {
-  ScriptProcess.earlyUpdate(dt);
+  const effectiveDt = GameState.paused ? 0 : dt;
 
-  PlayerProcess.update(playerController, dt);
+  ScriptProcess.earlyUpdate(effectiveDt);
 
-  DraggableProcess.update(dt);
+  PlayerProcess.update(playerController, dt); // Player process ignores game pause state
 
-  if (!GameState.paused) PhysicsProcess.step(dt);
+  DraggableProcess.update();
+
+  PhysicsProcess.step(effectiveDt);
   PhysicsProcess.update();
 
-  ScriptProcess.update(dt);
+  ScriptProcess.update(effectiveDt);
 
   MeshRenderingProcess.update();
 
-  if (!GameState.paused) DebugProcess.beforeRender();
-  ScriptProcess.lateUpdate(dt);
+  DebugProcess.beforeRender();
+  ScriptProcess.lateUpdate(effectiveDt);
   renderer.render(scene, camera);
-  if (!GameState.paused) DebugProcess.afterRender(dt);
+  DebugProcess.afterRender(effectiveDt);
 });
 TickProcess.setTickDuration(16);
 TickProcess.start();

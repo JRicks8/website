@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, Color, Line, LineBasicMaterial, LineDashedMaterial, Material, Mesh, Object3D, Points, PointsMaterial, Scene, Vector3 as ThreeV3 } from "three";
+import { LAYER_IGNORE_ALL } from "../util/layers.js";
 
 /** 
  * @typedef DebugShape
@@ -58,6 +59,7 @@ export const DebugProcess = {
       sizeAttenuation: config.attenuation ?? false 
     });
     const pointsObject = new Points(dotGeometry, dotMaterial);
+    pointsObject.layers.set(LAYER_IGNORE_ALL);
     if (config.attenuation) {
       pointsObject.renderOrder = 999;
       dotMaterial.depthTest = false;
@@ -66,7 +68,7 @@ export const DebugProcess = {
     _scene.add(pointsObject);
     _shapes.push({
       object: pointsObject,
-      lifespan: config.lifespan ?? 0
+      lifespan: config.lifespan ?? 0.001
     });
   },
 
@@ -96,7 +98,7 @@ export const DebugProcess = {
     _scene.add(lineObject);
     _shapes.push({
       object: lineObject,
-      lifespan: config.lifespan ?? 0
+      lifespan: config.lifespan ?? 0.001
     });
   },
 

@@ -28,33 +28,6 @@ export class BroadPhaseSolver {
           if (bb1.intersectsBox(bb2)) {
             res.push({ r1: bodies[i], r2: bodies[j] });
           }
-
-          DebugProcess.drawPoints({
-            points: [
-              bb1.min,
-              bb1.max,
-              new Vector3(bb1.min.x, bb1.max.y, bb1.min.z),
-              new Vector3(bb1.max.x, bb1.min.y, bb1.min.z),
-              new Vector3(bb1.min.x, bb1.min.y, bb1.max.z),
-              new Vector3(bb1.max.x, bb1.max.y, bb1.min.z),
-              new Vector3(bb1.max.x, bb1.min.y, bb1.max.z),
-              new Vector3(bb1.min.x, bb1.max.y, bb1.max.z),
-            ],
-            size: 10
-          });
-          DebugProcess.drawPoints({
-            points: [
-              bb2.min,
-              bb2.max,
-              new Vector3(bb2.min.x, bb2.max.y, bb2.min.z),
-              new Vector3(bb2.max.x, bb2.min.y, bb2.min.z),
-              new Vector3(bb2.min.x, bb2.min.y, bb2.max.z),
-              new Vector3(bb2.max.x, bb2.max.y, bb2.min.z),
-              new Vector3(bb2.max.x, bb2.min.y, bb2.max.z),
-              new Vector3(bb2.min.x, bb2.max.y, bb2.max.z),
-            ],
-            size: 10
-          });
         }
       }
     }
