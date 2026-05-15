@@ -10,7 +10,7 @@ export class RigidbodyComponent extends Component {
   /** @type {number} */
   id = -1;
 
-  /** @type {ColliderComponent | undefined} */
+  /** @type {ColliderComponent} */
   colliderComponent;
   bodyState = new BodyState();
   /** @type {Restraint[]} */

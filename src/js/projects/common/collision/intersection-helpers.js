@@ -3,14 +3,15 @@ import { Vector3 } from "../math/vector3.js";
 import { getWorldPosition } from "../util/transform-utils.js";
 import { sign } from "../math/common.js";
 import { DebugProcess } from "../processes/debug-process.js";
+import { RigidbodyComponent } from "../components/rigidbody.js";
 
 /**
  * Tests a specified axis for separation between two boxes.
  * @see https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
- * @param {any} A
- * @param {any} B
- * @param {Vector3} L
- * @param {Vector3} D
+ * @param {any} A Box information
+ * @param {any} B Box information
+ * @param {Vector3} L Test axis
+ * @param {Vector3} D Direction from A to B
  * @returns {boolean} True if the half extents of the boxes, when projected onto L, do not overlap.
  */
 function boxSAT(A, B, L, D) {
@@ -21,16 +22,17 @@ function boxSAT(A, B, L, D) {
 }
 
 /**
- * Returns all axes that the boxes intersect on (if any).
+ * Returns the first axis that the boxes are separated by (if any).
+ * The boxes are separated if there exists a separating axis.
  * @see https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
  * @param {BoxColliderComponent} c0
  * @param {BoxColliderComponent} c1
- * @returns {{ intersecting: boolean, axes: Vector3[] }}
+ * @returns {Vector3 | null}
  */
 export function testBoxBoxIntersection(c0, c1) {
   const C0Transform = c0.entity?.transform;
   const C1Transform = c1.entity?.transform;
-  if (!C0Transform || !C1Transform) return { intersecting: false, axes: []};
+  if (!C0Transform || !C1Transform) return null;
 
   const A = {
     C: getWorldPosition(C0Transform),
@@ -76,13 +78,28 @@ export function testBoxBoxIntersection(c0, c1) {
 
   const D = Vector3.subtract(B.C, A.C);
 
-  let intersectingAxes = [];
   for (const axis of axes)
-    if (!boxSAT(A, B, axis, D))
-      intersectingAxes.push(axis);
+    if (boxSAT(A, B, axis, D))
+      return axis;
   
-  return {
-    intersecting: intersectingAxes.length === 15,
-    axes: intersectingAxes
+  return null;
+}
+
+/**
+ * Finds the point of intersection between the two boxes.
+ * Does not factor for linear or angular velocity.
+ * @see https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+ * @param {RigidbodyComponent} b0
+ * @param {RigidbodyComponent} b1
+ * @returns {Vector3} 
+ */
+export function getBoxBoxPoint(b0, b1) {
+
+  const A = {
+    
+  };
+
+  const B = {
+    
   };
 }

@@ -2,6 +2,7 @@
     "compilerOptions": {
         "allowJs": true,
         "checkJs": true,
+        "strict": false,
         "noEmit": true, // Prevent TypeScript from emitting JS files
         "target": "es2024",
         "module": "nodenext",

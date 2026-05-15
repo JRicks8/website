@@ -13,8 +13,6 @@ import { applyLinearAxisRestraint, applyLinearRestraint, applyRotationAxisRestra
 
 // Excellent resource: https://graphics.pixar.com/pbm2001/pdf/notesg.pdf
 
-/** @type {BodyState[]} */
-let _cache = [];
 /** @type {RigidbodyComponent[]} */
 const _bodies = [];
 
@@ -40,64 +38,23 @@ function applyRestraints(restraints, deltaPosition, deltaOrientation) {
   }
 }
 
-/**
- * @param {number} dt
- * @param {RigidbodyComponent} body
- * @param {number} index // Index of the body in the 'bodies' array
- */
-function stepBody(dt, body, index) {
-  const bodyState = body.bodyState;
-
-  if (!body.noForces) {
-    // Apply primitive forces
-    const adjustedForce = Vector3.multiply(body.bodyState.force, dt);
-    bodyState.momentum.addv3(adjustedForce);
-
-    const adjustedTorque = Vector3.multiply(bodyState.torque, dt);
-    bodyState.angularMomentum.addv3(adjustedTorque);
-    
-    // Calculate velocities
-    bodyState.velocity = Vector3.divide(
-      bodyState.momentum, 
-      bodyState.mass
-    );
-
-    bodyState.rMatrix = Quaternion.toMatrix(bodyState.orientation);
-
-    const rT = Matrix3x3.copy(bodyState.rMatrix).transpose();
-    bodyState.iInv = Matrix3x3.multiplyMatrix(
-      Matrix3x3.multiplyMatrix(bodyState.rMatrix, bodyState.iBodyInv), 
-      rT
-    );
-
-    bodyState.angularVelocity = Matrix3x3.multiplyVector3(bodyState.iInv, bodyState.angularMomentum);
-  } else {
-    // With no forces applied, the momentum is dictated by the velocity instead
-    bodyState.momentum = Vector3.multiply(bodyState.velocity, bodyState.mass);
-    // TODO ;o; angular velocity...
-    // bodyState.angularMomentum = ;
-  }
-
-  // Apply velocities to spatial state
-  let deltaPosition = Vector3.multiply(bodyState.velocity, dt);
-
-  let deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...bodyState.angularVelocity), bodyState.orientation)
-    .multiplyScalar(0.5 * dt);
-
-  // Apply restraints
-  applyRestraints(body.restraints, deltaPosition, deltaOrientation);
-
-  bodyState.position.addv3(deltaPosition);
-  bodyState.orientation.add(deltaOrientation).normalize();
-
-  // Zero-out the forces
-  bodyState.force = new Vector3();
-  bodyState.torque = new Vector3();
-}
-
 export const PhysicsProcess = {
   registryContext: 'rigidbodies',
   globalConstantForce: new Vector3(),
+  /**
+   * The number of times to use binary search to estimate the time of collision
+   * @type {number}
+   */
+  collisionDetectionPrecision: 3,
+
+  stepCycleInfo: {
+    /** @type {BodyState[]} */
+    cache: [],
+    /** @type {Map<RigidbodyComponent, number>} */
+    cacheMap: new Map(),
+    /** @type {number} */
+    dt: 0
+  },
 
   /** @param {RigidbodyComponent} body */
   add: (body) => {
@@ -115,7 +72,10 @@ export const PhysicsProcess = {
    */
   step(dt) {
     // Setup cache & bodies
-    _cache = [];
+    this.stepCycleInfo.cache = [];
+    this.stepCycleInfo.cacheMap = new Map();
+    this.stepCycleInfo.dt = dt;
+
     _bodies.forEach(body => {
       /** @type {TransformComponent} */
       if (body.entity) body.bodyState.position.copy(body.entity.transform.position);
@@ -123,16 +83,71 @@ export const PhysicsProcess = {
       // Apply global forces
       body.bodyState.force.addv3(this.globalConstantForce);
 
-      _cache.push({...body.bodyState});
+      this.stepCycleInfo.cacheMap.set(body, this.stepCycleInfo.cache.length);
+      this.stepCycleInfo.cache.push({...body.bodyState});
     });
 
-    _bodies.forEach((body, i) => {
-      stepBody(dt, body, i);
+    _bodies.forEach((body) => {
+      this.stepBody(dt, body);
     });
 
     const maybeColliding = _broadPhaseSolver.solve(_bodies);
-    const contacts = _narrowPhaseSolver.solve(maybeColliding);
+    _narrowPhaseSolver.solve(maybeColliding);
     // TODO resolve contacts
+  },
+
+  /**
+   * @param {number} dt
+   * @param {RigidbodyComponent} body
+   */
+  stepBody(dt, body) {
+    const bodyState = body.bodyState;
+
+    if (!body.noForces) {
+      // Apply primitive forces
+      const adjustedForce = Vector3.multiply(body.bodyState.force, dt);
+      bodyState.momentum.addv3(adjustedForce);
+
+      const adjustedTorque = Vector3.multiply(bodyState.torque, dt);
+      bodyState.angularMomentum.addv3(adjustedTorque);
+      
+      // Calculate velocities
+      bodyState.velocity = Vector3.divide(
+        bodyState.momentum, 
+        bodyState.mass
+      );
+
+      bodyState.rMatrix = Quaternion.toMatrix(bodyState.orientation);
+
+      const rT = Matrix3x3.copy(bodyState.rMatrix).transpose();
+      bodyState.iInv = Matrix3x3.multiplyMatrix(
+        Matrix3x3.multiplyMatrix(bodyState.rMatrix, bodyState.iBodyInv), 
+        rT
+      );
+
+      bodyState.angularVelocity = Matrix3x3.multiplyVector3(bodyState.iInv, bodyState.angularMomentum);
+    } else {
+      // With no forces applied, the momentum is dictated by the velocity instead
+      bodyState.momentum = Vector3.multiply(bodyState.velocity, bodyState.mass);
+      // TODO ;o; angular velocity...
+      // bodyState.angularMomentum = ;
+    }
+
+    // Apply velocities to spatial state
+    let deltaPosition = Vector3.multiply(bodyState.velocity, dt);
+
+    let deltaOrientation = Quaternion.multiplyQuaternion(new Quaternion(0, ...bodyState.angularVelocity), bodyState.orientation)
+      .multiplyScalar(0.5 * dt);
+
+    // Apply restraints
+    applyRestraints(body.restraints, deltaPosition, deltaOrientation);
+
+    bodyState.position.addv3(deltaPosition);
+    bodyState.orientation.add(deltaOrientation).normalize();
+
+    // Zero-out the forces
+    bodyState.force = new Vector3();
+    bodyState.torque = new Vector3();
   },
 
   /** Updates the transform components on each of the bodies to match its rigidbody position. */
