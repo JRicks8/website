@@ -7,6 +7,7 @@ import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
 import { DebugProcess } from "../processes/debug-process.js";
 import { getWorldPosition } from "./transform-utils.js";
+import { BodyState } from "../physics/body-state.js";
 
 /**
  * Sets the mass of rb.  
@@ -32,7 +33,7 @@ export function computeInertia(rb) {
   } else {
     rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.bodyState.mass);
   }
-  rb.bodyState.iBodyInv = Matrix3x3.copy(rb.iBody);
+  rb.bodyState.iBodyInv = Matrix3x3.getCopy(rb.iBody);
   rb.bodyState.iBodyInv.invert();
 }
 
@@ -111,4 +112,26 @@ export function applyLinearAxisRestraint(restraint, vector) {
  */
 export function applyRotationAxisRestraint(restraint, rotation) {
   // TODO
+}
+
+/**
+ * Returns a new BodyState that is a copy of the input BodyState
+ * @param {BodyState} s 
+ * @returns {BodyState}
+ */
+export function copyBodyState(s) {
+  return {
+    mass: s.mass,
+    iBodyInv: s.iBodyInv.getCopy(),
+    position: s.position.getCopy(),
+    orientation: s.orientation.getCopy(),
+    momentum: s.momentum.getCopy(),
+    angularMomentum: s.angularMomentum.getCopy(),
+    iInv: s.iInv.getCopy(),
+    rMatrix: s.rMatrix.getCopy(),
+    velocity: s.velocity.getCopy(),
+    angularVelocity: s.angularVelocity.getCopy(),
+    force: s.force.getCopy(),
+    torque: s.torque.getCopy()
+  };
 }

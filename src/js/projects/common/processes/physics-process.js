@@ -9,7 +9,7 @@ import { BroadPhaseSolver } from "../physics/broad-phase.js";
 import { Quaternion as ThreeQuaternion } from "three";
 import { ComponentManager } from "../game/component-manager.js";
 import { NarrowPhaseSolver } from "../collision/narrow-phase.js";
-import { applyLinearAxisRestraint, applyLinearRestraint, applyRotationAxisRestraint } from "../util/physics-utils.js";
+import { applyLinearAxisRestraint, applyLinearRestraint, applyRotationAxisRestraint, copyBodyState } from "../util/physics-utils.js";
 
 // Excellent resource: https://graphics.pixar.com/pbm2001/pdf/notesg.pdf
 
@@ -84,7 +84,7 @@ export const PhysicsProcess = {
       body.bodyState.force.addv3(this.globalConstantForce);
 
       this.stepCycleInfo.cacheMap.set(body, this.stepCycleInfo.cache.length);
-      this.stepCycleInfo.cache.push({...body.bodyState});
+      this.stepCycleInfo.cache.push(copyBodyState(body.bodyState));
     });
 
     _bodies.forEach((body) => {
@@ -119,7 +119,7 @@ export const PhysicsProcess = {
 
       bodyState.rMatrix = Quaternion.toMatrix(bodyState.orientation);
 
-      const rT = Matrix3x3.copy(bodyState.rMatrix).transpose();
+      const rT = Matrix3x3.getCopy(bodyState.rMatrix).transpose();
       bodyState.iInv = Matrix3x3.multiplyMatrix(
         Matrix3x3.multiplyMatrix(bodyState.rMatrix, bodyState.iBodyInv), 
         rT
@@ -153,16 +153,25 @@ export const PhysicsProcess = {
   /** Updates the transform components on each of the bodies to match its rigidbody position. */
   update() {
     for (const body of _bodies) {
-      if (!body.entity) continue;
-      /** @type {TransformComponent} */
-      const t = ComponentManager.getComponent(body.entity, COMP_TRANSFORM);
-      if (!t) continue;
-
-      t.position.set(body.bodyState.position.x, body.bodyState.position.y, body.bodyState.position.z);
-      t.orientation.set(body.bodyState.orientation.w, body.bodyState.orientation.x, body.bodyState.orientation.y, body.bodyState.orientation.z);
-      
-      body.colliderComponent?.colliderMesh?.position.set(body.bodyState.position.x, body.bodyState.position.y, body.bodyState.position.z);
-      body.colliderComponent?.colliderMesh?.setRotationFromQuaternion(new ThreeQuaternion(body.bodyState.orientation.x, body.bodyState.orientation.y, body.bodyState.orientation.z, body.bodyState.orientation.w));
+      this.updateBody(body);
     }
+  },
+
+  /**
+   * Updates the transform components on the given body to match its rigidbody position.
+   * @param {RigidbodyComponent} b
+   */
+  updateBody(b) {
+    if (!b.entity) return;
+    
+    /** @type {TransformComponent} */
+    const t = ComponentManager.getComponent(b.entity, COMP_TRANSFORM);
+    if (!t) return;
+
+    t.position.set(b.bodyState.position.x, b.bodyState.position.y, b.bodyState.position.z);
+    t.orientation.set(b.bodyState.orientation.w, b.bodyState.orientation.x, b.bodyState.orientation.y, b.bodyState.orientation.z);
+    
+    b.colliderComponent.colliderMesh.position.set(b.bodyState.position.x, b.bodyState.position.y, b.bodyState.position.z);
+    b.colliderComponent.colliderMesh.setRotationFromQuaternion(new ThreeQuaternion(b.bodyState.orientation.x, b.bodyState.orientation.y, b.bodyState.orientation.z, b.bodyState.orientation.w));
   }
 }

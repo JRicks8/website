@@ -28,6 +28,7 @@ function boxSAT(A, B, L, D) {
  * @param {BoxColliderComponent} c0
  * @param {BoxColliderComponent} c1
  * @returns {Vector3 | null}
+ * TODO: Make this accept transforms as input instead of looking for transform component
  */
 export function testBoxBoxIntersection(c0, c1) {
   const C0Transform = c0.entity?.transform;

@@ -196,4 +196,12 @@ export class Quaternion {
   inverse() {
     return new Quaternion(this.w, -this.x, -this.y, -this.z);
   }
+
+  /**
+   * Returns a copy of this quaternion
+   * @returns {Quaternion}
+   */
+  getCopy() {
+    return new Quaternion(this.w, this.x, this.y, this.z);
+  }
 }

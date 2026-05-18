@@ -223,6 +223,14 @@ export class Vector3 {
   }
 
   /**
+   * Returns a copy of this vector
+   * @return {Vector3}
+   */
+  getCopy() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+
+  /**
    * 
    * @param {Vector3Like} v 
    * @returns True if the components of v are equal to the components of this vector

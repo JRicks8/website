@@ -13,7 +13,7 @@ export class NarrowPhaseSolver {
     for (const {r1, r2} of pairs) {
       if (r1.colliderComponent.colliderType && r2.colliderComponent.colliderType) {
         const test = getIntersectionTest(r1.colliderComponent.colliderType, r2.colliderComponent.colliderType);
-        const point = test(r1, r2);
+        const point = test(r1.colliderComponent, r2.colliderComponent);
         if (point) {
           DebugProcess.drawPoints({ points: [point] });
           GameState.paused = true;
