@@ -4,16 +4,19 @@ import { COMP_RIGIDBODY, RigidbodyComponent } from "../components/rigidbody.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { GameState } from "../game/game-state.js";
 import { DebugProcess } from "../processes/debug-process.js";
+import { copyBodyState } from "../util/physics-utils.js";
 import { getIntersectionTest } from "./intersection-test-mapper.js";
 
+/** @import {BodyInfo} from "../processes/physics-process.js" */
+
 export class NarrowPhaseSolver {
-  /** @param {{ r1: RigidbodyComponent, r2: RigidbodyComponent }[]} pairs */
+  /** @param {{ b1: BodyInfo, b2: BodyInfo }[]} pairs */
   solve(pairs) {
     const contacts = [];
-    for (const {r1, r2} of pairs) {
-      if (r1.colliderComponent.colliderType && r2.colliderComponent.colliderType) {
-        const test = getIntersectionTest(r1.colliderComponent.colliderType, r2.colliderComponent.colliderType);
-        const point = test(r1.colliderComponent, r2.colliderComponent);
+    for (const {b1, b2} of pairs) {
+      if (b1.colliderType && b2.colliderType) {
+        const test = getIntersectionTest(b1.colliderType, b2.colliderType);
+        const point = test(b1, b2);
         if (point) {
           DebugProcess.drawPoints({ points: [point] });
           GameState.paused = true;

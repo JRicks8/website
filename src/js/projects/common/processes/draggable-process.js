@@ -147,7 +147,7 @@ export const DraggableProcess = {
       const positionError = Vector3.subtract(mousePos, worldDragPoint);
       const desiredPointVelocity = Vector3.multiply(positionError, _kp);
       const velocityError = Vector3.subtract(desiredPointVelocity, currentPointVelocity);
-      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.bodyState.mass, _kd);
+      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.state.mass, _kd);
 
       addForceAtPosition(_draggedRigidbody, derivedForce, rotatedLocalPoint);
 

@@ -16,7 +16,7 @@ import { BodyState } from "../physics/body-state.js";
  * @param {number} m 
  */
 export function setMass(rb, m) {
-  rb.bodyState.mass = m;
+  rb.state.mass = m;
   computeInertia(rb);
 }
 
@@ -29,12 +29,12 @@ export function computeInertia(rb) {
   const colliderComponent = ComponentManager.getComponent(rb.entity, COMP_COLLIDER);
   if (colliderComponent) {
     // TODO Compute inertia based on collider
-    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.bodyState.mass);
+    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.state.mass);
   } else {
-    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.bodyState.mass);
+    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.state.mass);
   }
-  rb.bodyState.iBodyInv = Matrix3x3.getCopy(rb.iBody);
-  rb.bodyState.iBodyInv.invert();
+  rb.state.iBodyInv = Matrix3x3.getCopy(rb.iBody);
+  rb.state.iBodyInv.invert();
 }
 
 /**
@@ -43,7 +43,7 @@ export function computeInertia(rb) {
  * @param {Vector3} force 
  */
 export function addLinearForce(rb, force) {
-  rb.bodyState.force.addv3(force);
+  rb.state.force.addv3(force);
 }
 
 /**
@@ -52,7 +52,7 @@ export function addLinearForce(rb, force) {
  * @param {Vector3} force 
  */
 export function addTorque(rb, force) {
-  rb.bodyState.torque.addv3(force);
+  rb.state.torque.addv3(force);
 }
 
 /**
@@ -78,10 +78,10 @@ export function addForceAtPosition(rb, force, point) {
 export function velocityAtPoint(rb, point) {
   return Vector3.add(
     Vector3.cross(
-      rb.bodyState.angularVelocity, 
+      rb.state.angularVelocity, 
       point
     ),
-    rb.bodyState.velocity
+    rb.state.velocity
   );
 }
 
