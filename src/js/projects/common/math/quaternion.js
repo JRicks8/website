@@ -25,6 +25,21 @@ export class Quaternion {
   /**
    * @static
    * @param {Quaternion} q 
+   * @param {Vector3} v 
+   * @returns {Quaternion}
+   */
+  static multiplyVector(q, v) {
+    return new Quaternion(
+      -q.x * v.x - q.y * v.y - q.z * v.z,
+      q.w * v.x + q.y * v.z - q.z * v.y,
+      q.w * v.y + q.z * v.x - q.x * v.z,
+      q.w * v.z + q.x * v.y - q.y * v.x
+    );
+  }
+
+  /**
+   * @static
+   * @param {Quaternion} q 
    * @param {number} s 
    * @returns {Quaternion}
    */
@@ -49,7 +64,7 @@ export class Quaternion {
    */
   static toMatrix(q) {
     const m = new Matrix3x3();
-    const v = q.v;
+    const v = q.v();
     m.value = [
       [1 - 2*v.y*v.y - 2*v.z*v.z, 2*v.x*v.y - 2*q.w*v.z, 2*v.x*v.z + 2*q.w*v.y],
       [2*v.x*v.y + 2*q.w*v.z, 1 - 2*v.x*v.x - 2*v.z*v.z, 2*v.y*v.z - 2*q.w*v.x],
@@ -82,19 +97,6 @@ export class Quaternion {
   /** @type {number} */
   z;
 
-  get v() {
-    return new Vector3(this.x, this.y, this.z);
-  }
-
-  get magnitude() {
-    return Math.sqrt(this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z);
-  }
-
-  get normalized() {
-    const m = this.magnitude || 1;
-    return new Quaternion(this.w / m, this.x / m, this.y / m, this.z / m);
-  }
-
   constructor(w = 1, x = 0, y = 0, z = 0) {
     this.w = w;
     this.x = x;
@@ -107,6 +109,19 @@ export class Quaternion {
     yield this.x;
     yield this.y;
     yield this.z;
+  }
+
+  magnitude() {
+    return Math.sqrt(this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z);
+  }
+
+  normalized() {
+    const m = this.magnitude() || 1;
+    return new Quaternion(this.w / m, this.x / m, this.y / m, this.z / m);
+  }
+
+  v() {
+    return new Vector3(this.x, this.y, this.z);
   }
 
   /**
@@ -185,7 +200,7 @@ export class Quaternion {
   }
 
   normalize() {
-    const m = this.magnitude || 1;
+    const m = this.magnitude() || 1;
     this.w /= m;
     this.x /= m;
     this.y /= m;

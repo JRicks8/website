@@ -10,13 +10,13 @@ import { Vector2 } from "./vector2.js";
  */
 
 export class Vector3 {
-  static get one() { return new Vector3(1, 1, 1); }
-  static get up() { return new Vector3(0, 1, 0); }
-  static get down() { return new Vector3(0, -1, 0); }
-  static get right() { return new Vector3(1, 0, 0); }
-  static get left() { return new Vector3(-1, 0, 0); }
-  static get forward() { return new Vector3(0, 0, -1); }
-  static get back() { return new Vector3(0, 0, 1); }
+  static one() { return new Vector3(1, 1, 1); }
+  static up() { return new Vector3(0, 1, 0); }
+  static down() { return new Vector3(0, -1, 0); }
+  static right() { return new Vector3(1, 0, 0); }
+  static left() { return new Vector3(-1, 0, 0); }
+  static forward() { return new Vector3(0, 0, -1); }
+  static back() { return new Vector3(0, 0, 1); }
 
   /**
    * @static
@@ -124,7 +124,7 @@ export class Vector3 {
    */
   static rotate(v, q) {
     return Quaternion.multiplyQuaternion(q, new Quaternion(0, v.x, v.y, v.z))
-      .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v;
+      .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v();
   }
 
   /**

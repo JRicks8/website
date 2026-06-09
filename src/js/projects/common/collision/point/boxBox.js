@@ -42,9 +42,9 @@ export function testBoxBoxIntersection(b1, b2) {
   const b1Geo = /** @type {BoxGeometry} */ (b1.geometry);
   const A = {
     C: b1.state.position,
-    A0: Vector3.right.rotate(b1.state.orientation),
-    A1: Vector3.up.rotate(b1.state.orientation),
-    A2: Vector3.forward.rotate(b1.state.orientation),
+    A0: Vector3.right().rotate(b1.state.orientation),
+    A1: Vector3.up().rotate(b1.state.orientation),
+    A2: Vector3.forward().rotate(b1.state.orientation),
     a0: b1Geo.parameters.width / 2,
     a1: b1Geo.parameters.height / 2,
     a2: b1Geo.parameters.depth / 2
@@ -53,9 +53,9 @@ export function testBoxBoxIntersection(b1, b2) {
   const b2Geo = /** @type {BoxGeometry} */ (b1.geometry);
   const B = {
     C: b2.state.position,
-    B0: Vector3.right.rotate(b2.state.orientation),
-    B1: Vector3.up.rotate(b2.state.orientation),
-    B2: Vector3.forward.rotate(b2.state.orientation),
+    B0: Vector3.right().rotate(b2.state.orientation),
+    B1: Vector3.up().rotate(b2.state.orientation),
+    B2: Vector3.forward().rotate(b2.state.orientation),
     b0: b2Geo.parameters.width / 2,
     b1: b2Geo.parameters.height / 2,
     b2: b2Geo.parameters.depth / 2

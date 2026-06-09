@@ -8,7 +8,7 @@ import { BroadPhaseSolver } from "../physics/broad-phase.js";
 
 import { BufferGeometry, Quaternion as ThreeQuaternion } from "three";
 import { ComponentManager } from "../game/component-manager.js";
-import { NarrowPhaseSolver } from "../collision/narrow-phase.js";
+import { NarrowPhaseSolver } from "../collision/narrow-phase/narrow-phase.js";
 import { applyLinearAxisRestraint, applyLinearRestraint, applyRotationAxisRestraint, copyBodyState } from "../util/physics-utils.js";
 
 /** @import {BodyConfig} from "../components/rigidbody.js" */

@@ -135,3 +135,24 @@ export function copyBodyState(s) {
     torque: s.torque.getCopy()
   };
 }
+
+/**
+ * Integrates v given a velocity and dt.
+ * @param {Vector3} v
+ * @param {Vector3} velocity
+ * @param {number} dt
+ * @returns {Vector3}
+ */
+export function integrateVector(v, velocity, dt) {
+  return Vector3.add(v, Vector3.multiply(velocity, dt));
+}
+
+/**
+ * Integrates q given an angular velocity and dt.
+ * @param {Quaternion} q
+ * @param {Vector3} angVel
+ * @param {number} dt
+ */
+export function integrateQuaternion(q, angVel, dt) {
+  return 
+}
