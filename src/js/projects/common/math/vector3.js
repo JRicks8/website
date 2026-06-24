@@ -91,6 +91,18 @@ export class Vector3 {
 
   /**
    * @static
+   * @param {Vector3Like} v1 
+   * @param {Vector3Like} v2 
+   * @param {Vector3Like} v3 
+   * @param {Vector3Like} v4 
+   * @returns {Vector3} A vector where (dot(v1, v2), dot(v1, v3), dot(v1, v4))
+   */
+  static dot3(v1, v2, v3, v4) {
+    return new Vector3(Vector3.dot(v1, v2), Vector3.dot(v1, v3), Vector3.dot(v1, v4));
+  }
+
+  /**
+   * @static
    * @param {Vector3Like} v1
    * @param {Vector3Like} v2
    * @returns {Vector3}

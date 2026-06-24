@@ -1,30 +1,20 @@
 import { BufferGeometry } from "three";
+import { GJK } from "./gjk.js";
 
 /** @import {Transform} from "../../components/transform.js" */
 
-export class ContinuousConvexSolver {
-  /** @type {BufferGeometry} */
-  geoA;
-  /** @type {BufferGeometry} */
-  geoB;
-
+export const ContinuousConvexSolver = {
   /**
-   * @param {BufferGeometry} geoA 
-   * @param {BufferGeometry} geoB 
+   * @param {{
+   *   fromA: Transform,
+   *   toA: Transform,
+   *   geoA: BufferGeometry,
+   *   fromB: Transform,
+   *   toB: Transform,
+   *   geoB: BufferGeometry
+   * }} input
    */
-  constructor(geoA, geoB) {
-    this.geoA = geoA;
-    this.geoB = geoB;
-  }
-
-  /**
-   * @param {Transform} fromA 
-   * @param {Transform} toA 
-   * @param {Transform} fromB 
-   * @param {Transform} toB 
-   */
-  findTimeOfIntersection(fromA, toA, fromB, toB) {
-    // This is if I ever want to implement continuous collision detection
+  findTimeOfIntersection(input) {
     // Obtain bounding radius
 
     // Obtain velocities (must be linear)
@@ -48,15 +38,12 @@ export class ContinuousConvexSolver {
       // Get interpolated position & orientation using lambda
       
       // Compute closest points
+      GJK.getClosestPoints(interpA, interpB, input.geoA, input.geoB);
 
       // Update externally tracked values
 
       // increment iterations
 
     // Return found midpoint between two points
-  }
-
-  getClosestPoints() {
-    // Use gjk to find closest points
   }
 }

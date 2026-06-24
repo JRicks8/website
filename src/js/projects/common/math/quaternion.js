@@ -64,7 +64,7 @@ export class Quaternion {
    */
   static toMatrix(q) {
     const m = new Matrix3x3();
-    const v = q.v();
+    const v = q.normalized().v();
     m.value = [
       [1 - 2*v.y*v.y - 2*v.z*v.z, 2*v.x*v.y - 2*q.w*v.z, 2*v.x*v.z + 2*q.w*v.y],
       [2*v.x*v.y + 2*q.w*v.z, 1 - 2*v.x*v.x - 2*v.z*v.z, 2*v.y*v.z - 2*q.w*v.x],

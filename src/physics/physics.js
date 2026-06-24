@@ -21,6 +21,8 @@ import { RigidbodyComponent } from "../js/projects/common/components/rigidbody.j
 import { DraggableComponent } from "../js/projects/common/components/draggable-body.js";
 import { MeshRendererComponent } from "../js/projects/common/components/mesh-renderer.js";
 import { BoxColliderComponent } from "../js/projects/common/components/collider/box-collider.js";
+import { ColliderComponent, COMP_COLLIDER } from "../js/projects/common/components/collider/collider.js";
+import { Vector3 } from "../js/projects/common/math/vector3.js";
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);

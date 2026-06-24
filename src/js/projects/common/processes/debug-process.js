@@ -1,6 +1,8 @@
 import { BufferAttribute, BufferGeometry, Color, Line, LineBasicMaterial, LineDashedMaterial, Material, Mesh, Object3D, Points, PointsMaterial, Scene, Vector3 as ThreeV3 } from "three";
 import { LAYER_IGNORE_ALL } from "../util/layers.js";
 
+/** @import { Vector3Like } from "../math/vector3.js" */
+
 /** 
  * @typedef DebugShape
  * @property {Object3D} object
@@ -9,7 +11,7 @@ import { LAYER_IGNORE_ALL } from "../util/layers.js";
 
 /**
  * @typedef Config
- * @property {import("../math/vector3.js").Vector3Like[]} points
+ * @property {Vector3Like[]} points
  * @property {number} [lifespan] Defaults to 0 (draw for one frame)
  * @property {number} [size] Defaults to 10 pixels
  * @property {Color} [color] Defaults to white
