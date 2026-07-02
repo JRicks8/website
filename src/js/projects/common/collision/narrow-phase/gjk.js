@@ -1,11 +1,12 @@
 /** @see https://realtimecollisiondetection.net/pubs/SIGGRAPH04_Ericson_GJK_notes.pdf */
+// Also huge credit to Bullet3/PyBullet for their excellent physics engine that I've been using as an implementation reference for much of this.
 
-import { BufferGeometry, Vector3 as ThreeV3 } from "three";
+import { BufferGeometry } from "three";
 import { Vector3 } from "../../math/vector3.js";
 import { Quaternion } from "../../math/quaternion.js";
 import { Matrix3x3 } from "../../math/matrix3x3.js";
 import { getPointsFromGeometry } from "../../util/three-utils.js";
-import { getWorldPosition } from "../../util/transform-utils.js";
+import { MIN_DISTANCE } from "./continuous-convex.js";
 
 /** @import {Transform} from "../../components/transform.js" */
 
@@ -136,9 +137,26 @@ function testSimplex(simplex, dir) {
   const d = simplex.points[0];
 
   // Check that this is a valid tetrahedron, done by
-  // finding dist of one point from the others
-  const dist = getPointDistFromTri(a.supMinkowski, b.supMinkowski, c.supMinkowski, d.supMinkowski);
+  // finding dist from one point to the other 3 (as a triangle)
+  let dist = getPointDistFromTri(a.supMinkowski, b.supMinkowski, c.supMinkowski, d.supMinkowski);
   if (dist === 0) return -1;
+
+  // Does origin lie on tetrahedron faces? yes = intersect
+  const origin = new Vector3();
+  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  if (Math.abs(dist) < MIN_DISTANCE)
+    return 1;
+  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  if (Math.abs(dist) < MIN_DISTANCE)
+    return 1;
+  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  if (Math.abs(dist) < MIN_DISTANCE)
+    return 1;
+  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  if (Math.abs(dist) < MIN_DISTANCE)
+    return 1;
+
+  const ao = a.supMinkowski.getCopy().multiply(-1);
 }
 
 export const GJK = {

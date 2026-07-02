@@ -3,6 +3,9 @@ import { GJK } from "./gjk.js";
 
 /** @import {Transform} from "../../components/transform.js" */
 
+// Some small number to keep things from getting too close to zero
+export const MIN_DISTANCE = 1e-7;
+
 export const ContinuousConvexSolver = {
   /**
    * @param {{

@@ -1,12 +1,9 @@
-import { Color } from "three";
 import { ColliderComponent, COMP_COLLIDER } from "../components/collider/collider.js";
-import { COMP_RIGIDBODY, Restraint, RigidbodyComponent } from "../components/rigidbody.js";
+import { Restraint, RigidbodyComponent } from "../components/rigidbody.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
-import { DebugProcess } from "../processes/debug-process.js";
-import { getWorldPosition } from "./transform-utils.js";
 import { BodyState } from "../physics/body-state.js";
 
 /**
