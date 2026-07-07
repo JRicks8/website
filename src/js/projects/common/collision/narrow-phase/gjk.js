@@ -7,6 +7,7 @@ import { Quaternion } from "../../math/quaternion.js";
 import { Matrix3x3 } from "../../math/matrix3x3.js";
 import { getPointsFromGeometry } from "../../util/three-utils.js";
 import { MIN_DISTANCE } from "./continuous-convex.js";
+import { cdSign } from "../../math/common.js";
 
 /** @import {Transform} from "../../components/transform.js" */
 
@@ -22,6 +23,18 @@ import { MIN_DISTANCE } from "./continuous-convex.js";
  * @property {SupportVector[]} points // Supporting points of relevant objects
  * @property {number} last // index of last added point
  */
+
+/** 
+ * @param {SupportVector} v
+ * @returns {SupportVector}
+ */
+function getSupportVectorCopy(v) {
+  return {
+    supMinkowski: v.supMinkowski.getCopy(),
+    supA: v.supA.getCopy(),
+    supB: v.supB.getCopy()
+  };
+}
 
 /**
  * Calculates the distance between a point and a line segment (two points)
@@ -127,36 +140,188 @@ function addToSimplex(simplex, supportVector) {
 
 /**
  * @param {Simplex} simplex 
- * @param {Vector3} dir 
- * @returns {number} 1 if contains origin, 0 if should continue, -1 if no intersection
+ * @param {number} size 
  */
-function testSimplex(simplex, dir) {
-  const a = simplex.points[3];
-  const b = simplex.points[2];
-  const c = simplex.points[1];
-  const d = simplex.points[0];
+function setSimplexSize(simplex, size) {
+  simplex.last = size - 1;
+}
+
+/**
+ * @param {Simplex} simplex 
+ * @returns {number}
+ */
+function getSimplexSize(simplex) {
+  return simplex.last + 1
+}
+
+/**
+ * @param {Simplex} simplex 
+ * @param {Vector3} dir 
+ * @returns {1 | 0 | -1} 1 if contains origin, 0 if should continue, -1 if no intersection
+ */
+function testSimplex3(simplex, dir) {
+  const A = simplex.points[2];
+  const B = simplex.points[1];
+  const C = simplex.points[0];
+
+  // Check touching contact
+  const dist = getPointDistFromTri(new Vector3(), A.supMinkowski, B.supMinkowski, C.supMinkowski);
+  if (Math.abs(dist) < MIN_DISTANCE) return 1;
+
+  // Check area > 0
+  if (Vector3.equals(A.supMinkowski, B.supMinkowski) || Vector3.equals(A.supMinkowski, C.supMinkowski)) return -1;
+
+  const AO = A.supMinkowski.getCopy().multiply(-1);
+
+  const AB = Vector3.subtract(B.supMinkowski, A.supMinkowski);
+  const AC = Vector3.subtract(C.supMinkowski, A.supMinkowski);
+  const ABC = Vector3.cross(AB, AC);
+
+  let dot = Vector3.dot(Vector3.cross(ABC, AC), AO);
+  if (Math.abs(dot) < MIN_DISTANCE || dot > 0) {
+    dot = Vector3.dot(AC, AO);
+
+    if (Math.abs(dot) < MIN_DISTANCE || dot > 0) {
+      // C is already in place
+      simplex.points[1] = getSupportVectorCopy(A);
+      setSimplexSize(simplex, 2);
+      dir.copy(Vector3.tripleCross(AC, AO, AC));
+
+    } else {
+      dot = Vector3.dot(AB, AO);
+
+      if (Math.abs(dot) < MIN_DISTANCE || dot > 0) {
+        simplex.points[0] = getSupportVectorCopy(B);
+        simplex.points[1] = getSupportVectorCopy(A);
+        setSimplexSize(simplex, 2);
+        dir.copy(Vector3.tripleCross(AB, AO, AB));
+
+      } else {
+        simplex.points[0] = getSupportVectorCopy(A);
+        setSimplexSize(simplex, 1);
+        dir.copy(AO);
+      }
+    }
+  } else {
+    dot = Vector3.dot(Vector3.cross(AB, ABC), AO);
+
+    if (Math.abs(dot) < MIN_DISTANCE || dot > 0) {
+      dot = Vector3.dot(AB, AO);
+
+      if (Math.abs(dot) < MIN_DISTANCE || dot > 0) {
+        simplex.points[0] = getSupportVectorCopy(B);
+        simplex.points[1] = getSupportVectorCopy(A);
+        setSimplexSize(simplex, 2);
+        dir.copy(Vector3.tripleCross(AB, AO, AB));
+
+      } else {
+        simplex.points[0] = getSupportVectorCopy(A);
+        setSimplexSize(simplex, 1);
+        dir.copy(AO);
+      }
+    } else {
+      dot = Vector3.dot(ABC, AO);
+      
+      if (Math.abs(dot) < MIN_DISTANCE || dot > 0) {
+        dir.copy(ABC);
+
+      } else {
+        simplex.points[0] = getSupportVectorCopy(B);
+        simplex.points[1] = getSupportVectorCopy(C);
+
+        dir.copy(ABC).multiply(-1);
+      }
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * @param {Simplex} simplex 
+ * @param {Vector3} dir 
+ * @returns {1 | 0 | -1} 1 if contains origin, 0 if should continue, -1 if no intersection
+ */
+function testSimplex4(simplex, dir) {
+  if (simplex.points.length < 4) {
+    // TODO: remove this after testing this doesn't happen
+    console.error('simplex length is less than four');
+    return -1;
+  }
+  const A = simplex.points[3];
+  const B = simplex.points[2];
+  const C = simplex.points[1];
+  const D = simplex.points[0];
 
   // Check that this is a valid tetrahedron, done by
   // finding dist from one point to the other 3 (as a triangle)
-  let dist = getPointDistFromTri(a.supMinkowski, b.supMinkowski, c.supMinkowski, d.supMinkowski);
+  let dist = getPointDistFromTri(A.supMinkowski, B.supMinkowski, C.supMinkowski, D.supMinkowski);
   if (dist === 0) return -1;
 
   // Does origin lie on tetrahedron faces? yes = intersect
   const origin = new Vector3();
-  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  dist = getPointDistFromTri(origin, A.supMinkowski, B.supMinkowski, C.supMinkowski);
   if (Math.abs(dist) < MIN_DISTANCE)
     return 1;
-  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  dist = getPointDistFromTri(origin, A.supMinkowski, C.supMinkowski, D.supMinkowski);
   if (Math.abs(dist) < MIN_DISTANCE)
     return 1;
-  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  dist = getPointDistFromTri(origin, A.supMinkowski, B.supMinkowski, D.supMinkowski);
   if (Math.abs(dist) < MIN_DISTANCE)
     return 1;
-  dist = getPointDistFromTri(origin, a.supMinkowski, b.supMinkowski, c.supMinkowski);
+  dist = getPointDistFromTri(origin, B.supMinkowski, C.supMinkowski, D.supMinkowski);
   if (Math.abs(dist) < MIN_DISTANCE)
     return 1;
 
-  const ao = a.supMinkowski.getCopy().multiply(-1);
+  // Calc AO, AB, AC, AD segments and ABC, ACD, ADB normal vectors
+  const AO = A.supMinkowski.getCopy().multiply(-1);
+  const AB = Vector3.subtract(B.supMinkowski, A.supMinkowski);
+  const AC = Vector3.subtract(C.supMinkowski, A.supMinkowski);
+  const AD = Vector3.subtract(D.supMinkowski, A.supMinkowski);
+  const ABC = Vector3.cross(AB, AC);
+  const ACD = Vector3.cross(AC, AD);
+  const ADB = Vector3.cross(AD, AB);
+
+  // Side of B, C, D relative to planes ACD, ADB, and ABC respectively
+  const BonACD = cdSign(Vector3.dot(ACD, AB));
+  const ConADB = cdSign(Vector3.dot(ADB, AC));
+  const DonABC = cdSign(Vector3.dot(ABC, AD));
+
+  // Is origin on same side of ACD, ADB, ABC as B, C, D respectively
+  const ABO = cdSign(Vector3.dot(ACD, AO)) === BonACD;
+  const ACO = cdSign(Vector3.dot(ADB, AO)) === ConADB;
+  const ADO = cdSign(Vector3.dot(ABC, AO)) === DonABC;
+
+  if (ABO && ACO && ADO) {
+    // Origin found in tetrahedron
+    return 1;
+    // Else, rearrange simplex4 to simplex3 and continue with triangle test
+  } else if (!ABO) {
+    // B is farthest, so replace it & continue as a triangle (same for rest of these conditions)
+    simplex[2] = getSupportVectorCopy(A);
+  } else if (!ACO) {
+    // C is farthest
+    simplex.points[1] = getSupportVectorCopy(D);
+    simplex.points[0] = getSupportVectorCopy(B);
+    simplex.points[2] = getSupportVectorCopy(A);
+  } else {
+    // D is farthest
+    simplex.points[0] = getSupportVectorCopy(C);
+    simplex.points[1] = getSupportVectorCopy(B);
+    simplex.points[2] = getSupportVectorCopy(A);
+  }
+  setSimplexSize(simplex, 3);
+
+  return testSimplex3(simplex, dir);
+}
+
+function testSimplex(simplex, dir) {
+  const size = getSimplexSize(simplex);
+  if (size === 3) {
+    return testSimplex3(simplex, dir);
+  } else {
+    return testSimplex4(simplex, dir);
+  }
 }
 
 export const GJK = {

@@ -116,6 +116,17 @@ export class Vector3 {
   }
 
   /**
+   * @static
+   * @param {*} v1 
+   * @param {*} v2 
+   * @param {*} v3 
+   * @returns {Vector3} The result of [ (v1 X v2) X v3 ]
+   */
+  static tripleCross(v1, v2, v3) {
+    return Vector3.cross(Vector3.cross(v1, v2), v3);
+  }
+
+  /**
    * Performs the star operation.
    * @see https://en.wikipedia.org/wiki/Infinitesimal_rotation_matrix
    * @param {Vector3Like} v 
@@ -150,6 +161,15 @@ export class Vector3 {
       v2,
       Vector3.dot(v1, v2) / v2.sqrMagnitude
     );
+  }
+
+  /**
+   * @param {Vector3} v1 
+   * @param {Vector3} v2 
+   * @returns {boolean} True if the two vectors have equivalent components
+   */
+  static equals(v1, v2) {
+    return v1.x === v2.x && v1.y === v2.y && v1.z === v2.z;
   }
 
   /** @type {number} */
@@ -249,15 +269,6 @@ export class Vector3 {
    */
   equals(v) {
     return this.x === v.x && this.y === v.y && this.z === v.z;
-  }
-
-  /**
-   * @param {Vector3Like} v 
-   */
-  setv3(v) {
-    this.x = v.x;
-    this.y = v.y;
-    this.z = v.z;
   }
 
   /**

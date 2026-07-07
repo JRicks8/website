@@ -1,3 +1,5 @@
+import { MIN_DISTANCE } from "../collision/narrow-phase/continuous-convex.js";
+
 /**
  * @param {number} n 
  * @param {number} min 
@@ -46,4 +48,15 @@ export function toRadians(d) {
  */
 export function sign(n) {
   return n ? n < 0 ? -1 : 1 : 0;
+}
+
+/**
+ * Returns the sign of n with respect to the MIN_DISTANCE
+ * @param {number} n 
+ * @returns {-1 | 1 | 0}
+ */
+export function cdSign(n) {
+  if (Math.abs(n) < MIN_DISTANCE) return 0;
+  else if (n < 0) return -1;
+  return 1;
 }

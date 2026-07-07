@@ -152,7 +152,7 @@ export const DraggableProcess = {
       addForceAtPosition(_draggedRigidbody, derivedForce, rotatedLocalPoint);
 
     } else {
-      _dragComponent.entity.transform.position.setv3(mousePos);
+      _dragComponent.entity.transform.position.copy(mousePos);
     }
   },
 
