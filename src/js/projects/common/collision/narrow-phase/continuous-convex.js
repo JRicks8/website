@@ -1,12 +1,13 @@
 import { BufferGeometry } from "three";
-import { GJK } from "./gjk.js";
+import { GJK, PointCollector } from "./gjk.js";
+import { VoronoiSimplexSolver } from "./voronoi-simplex.js";
 
 /** @import {Transform} from "../../components/transform.js" */
 
-// Some small number to keep things from getting too close to zero
-export const MIN_DISTANCE = 1e-7;
-
 export const ContinuousConvexSolver = {
+
+  simplexSolver: new VoronoiSimplexSolver(),
+
   /**
    * @param {{
    *   fromA: Transform,
@@ -41,7 +42,10 @@ export const ContinuousConvexSolver = {
       // Get interpolated position & orientation using lambda
       
       // Compute closest points
-      GJK.getClosestPoints(interpA, interpB, input.geoA, input.geoB);
+      this.simplexSolver.reset();
+      const pointCollector = new PointCollector();
+      const GJKSolver = new GJK();
+      GJKSolver.getClosestPoints(interpA, interpB, input.geoA, input.geoB, this.simplexSolver, pointCollector);
 
       // Update externally tracked values
 

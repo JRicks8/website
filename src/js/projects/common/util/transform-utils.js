@@ -1,11 +1,10 @@
-import { Color } from "three";
 import { TransformComponent } from "../components/transform.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
-import { DebugProcess } from "../processes/debug-process.js";
 
 /** @import {Vector3Like} from "../math/vector3.js" */
+/** @import {Transform} from "../components/transform.js" */
 
 /**
  * Calculates the world position of v local to the given transform.
@@ -26,12 +25,21 @@ export function getWorldPosition(transform, v = new Vector3()) {
 /**
  * Calculates the position local to the given transform.
  * @param {Vector3Like} v 
- * @param {TransformComponent} transform 
+ * @param {{ position: Vector3, orientation: Quaternion }} transform 
  * @returns {Vector3}
  */
-export function getLocalPosition(v, transform) {
-  throw Error('Not Implemented');
-  // TODO
+export function applyTransform(v, transform) {
+  return Vector3.rotate(v, transform.orientation).addv3(transform.position);
+}
+
+/**
+ * @param {Vector3Like} v 
+ * @param {Vector3} position 
+ * @param {Matrix3x3} orientation 
+ * @returns 
+ */
+export function applyTransform2(v, position, orientation) {
+  return Matrix3x3.multiplyVector3(orientation, v).addv3(position);
 }
 
 /**
@@ -41,4 +49,15 @@ export function getLocalPosition(v, transform) {
  */
 export function getWorldForward(transform) {
   return Vector3.forward().rotate(transform.orientation);
+}
+
+/**
+ * @param {Transform} transform 
+ * @returns {Transform}
+ */
+export function getTransformCopy(transform) {
+  return {
+    orientation: transform.orientation.getCopy(),
+    position: transform.position.getCopy()
+  };
 }

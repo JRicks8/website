@@ -139,13 +139,14 @@ export class Vector3 {
   }
 
   /**
-   * Rotates v by the quaternion q and returns a new Vector3 with the result, normalized.
+   * Rotates v by the quaternion q and returns a new Vector3 with the result
    * @see https://math.stackexchange.com/questions/40164/how-do-you-rotate-a-vector-by-a-unit-quaternion
    * @param {Vector3Like} v
    * @param {Quaternion} q 
    * @returns {Vector3}
    */
   static rotate(v, q) {
+    q.normalize();
     return Quaternion.multiplyQuaternion(q, new Quaternion(0, v.x, v.y, v.z))
       .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v();
   }
@@ -288,20 +289,24 @@ export class Vector3 {
   /**
    * Subtracts the components of v from this vector.
    * @param {Vector3Like} v 
+   * @returns {this}
    */
   subtractv3(v) {
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;
+    return this;
   }
 
   /**
    * Adds the components of v to this vector.
    * @param {Vector2} v 
+   * @returns {this}
    */
   addv2(v) {
     this.x += v.x;
     this.y += v.y;
+    return this;
   }
 
   /**

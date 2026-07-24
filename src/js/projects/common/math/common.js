@@ -1,4 +1,4 @@
-import { MIN_DISTANCE } from "../collision/narrow-phase/continuous-convex.js";
+import { MIN_DISTANCE } from "../collision/constants.js";
 
 /**
  * @param {number} n 

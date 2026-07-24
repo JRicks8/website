@@ -14,7 +14,7 @@ export class NarrowPhaseSolver {
         const point = test(b1, b2);
         if (point) {
           DebugProcess.drawPoints({ points: [point] });
-          GameState.paused = true;
+          GameState.setPaused(true);
         }
       }
     }

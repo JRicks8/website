@@ -1,6 +1,8 @@
 import { clamp } from "./common.js";
 import { Vector3 } from "./vector3.js";
 
+/** @import {Vector3Like} from "./vector3.js" */
+
 export class Matrix3x3 {
   /**
    * @static
@@ -31,7 +33,7 @@ export class Matrix3x3 {
 
   /**
    * @param {Matrix3x3} m 
-   * @param {Vector3} v 
+   * @param {Vector3Like} v 
    * @returns {Vector3}
    */
   static multiplyVector3(m, v) {

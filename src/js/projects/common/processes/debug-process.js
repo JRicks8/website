@@ -1,5 +1,6 @@
-import { BufferAttribute, BufferGeometry, Color, Line, LineBasicMaterial, LineDashedMaterial, Material, Mesh, Object3D, Points, PointsMaterial, Scene, Vector3 as ThreeV3 } from "three";
+import { BufferAttribute, BufferGeometry, Color, Line, LineBasicMaterial, LineDashedMaterial, Material, Mesh, MeshBasicMaterial, Object3D, Points, PointsMaterial, Scene, Vector3 as ThreeV3 } from "three";
 import { LAYER_IGNORE_ALL } from "../util/layers.js";
+import { GameState } from "../game/game-state.js";
 
 /** @import { Vector3Like } from "../math/vector3.js" */
 
@@ -25,6 +26,8 @@ let _scene;
 /** @type {DebugShape[]} */
 let _shapes = [];
 
+const logElement = document.getElementById('debugLog');
+
 export const DebugProcess = {
   /** @param {Scene} scene */
   initialize: (scene) => {
@@ -37,7 +40,7 @@ export const DebugProcess = {
   afterRender: (dt) => {
     const keep = [];
     for (const shape of _shapes) {
-      shape.lifespan -= dt;
+      if (!GameState.paused) shape.lifespan -= dt;
       if (shape.lifespan <= 0) {
         _scene.remove(shape.object);
         continue;
@@ -45,6 +48,13 @@ export const DebugProcess = {
       keep.push(shape);
     }
     _shapes = keep;
+  },
+
+  clearAll: () => {
+    for (const shape of _shapes) {
+      _scene.remove(shape.object);
+    }
+    _shapes = [];
   },
 
   /** @param {Config} config */
@@ -72,6 +82,18 @@ export const DebugProcess = {
       object: pointsObject,
       lifespan: config.lifespan ?? 0.001
     });
+  },
+
+  /** @param {Config} config */
+  drawWireframe: (config) => {
+    for (let i = 0; i < config.points.length; i++) {
+      for (let j = i + 1; j < config.points.length; j++) {
+        DebugProcess.drawLine({
+          ...config,
+          points: [config.points[i], config.points[j]]
+        });
+      }
+    }
   },
 
   /** @param {Config} config */
@@ -108,10 +130,10 @@ export const DebugProcess = {
    * @param {Mesh} mesh 
    * @param {number} lifespan 
    */
-  drawShape: (mesh, lifespan = 1, alwaysOnTop = false) => {
+  drawShape: (mesh, lifespan = 0, alwaysOnTop = false) => {
     if (alwaysOnTop) {
       mesh.renderOrder = 999;
-      mesh.material.depthTest = false;
+      mesh.material.depthTest = false; // ignore errors here
       mesh.material.depthWrite = false;
     }
     _scene.add(mesh);
@@ -119,5 +141,25 @@ export const DebugProcess = {
       object: mesh,
       lifespan: lifespan
     });
+  },
+
+  /**
+   * Writes the content to the debug log (with newline)
+   * @param  {...any} args 
+   */
+  print: (...args) => {
+    logElement.innerText += args.map(arg => String(arg)).join(' ');
+  },
+
+  /**
+   * Writes the content to the debug log (with newline)
+   * @param  {...any} args 
+   */
+  println: (...args) => {
+    logElement.innerText += args.map(arg => String(arg)).join(' ') + '\n';
+  },
+
+  clearLog: () => {
+    logElement.innerText = '';
   }
 };
