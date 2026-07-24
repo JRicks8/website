@@ -3,23 +3,48 @@ import { Vector3 } from "./vector3.js";
 
 export class Quaternion {
   /**
-   * @see https://en.wikipedia.org/wiki/Quaternion#Hamilton_product
+   * Returns the sum of the two quaternions.
    * @param {Quaternion} q1 
    * @param {Quaternion} q2 
    * @returns {Quaternion}
    */
-  static multiplyQuaternion(q1, q2) {
-    const q1w = q1.w, q1x = q1.x, q1y = q1.y, q1z = q1.z;
-		const q2w = q2.w, q2x = q2.x, q2y = q2.y, q2z = q2.z;
+  static add(q1, q2) {
+    return new Quaternion(q1.w + q2.w, q1.x + q2.x, q1.y + q2.y, q1.z + q2.z);
+  }
+
+  /**
+   * @see https://en.wikipedia.org/wiki/Quaternion#Hamilton_product
+   * @param {Quaternion} a 
+   * @param {Quaternion} b 
+   * @returns {Quaternion}
+   */
+  static multiplyQuaternion(a, b) {
+    const qaw = a.w, qax = a.x, qay = a.y, qaz = a.z;
+		const qbw = b.w, qbx = b.x, qby = b.y, qbz = b.z;
 
     const res = new Quaternion(
-      q1w * q2w - q1x * q2x - q1y * q2y - q1z * q2z,
-      q1x * q2w + q1w * q2x + q1y * q2z - q1z * q2y,
-      q1y * q2w + q1w * q2y + q1z * q2x - q1x * q2z,
-      q1z * q2w + q1w * q2z + q1x * q2y - q1y * q2x
+      qaw * qbw - qax * qbx - qay * qby - qaz * qbz,
+      qax * qbw + qaw * qbx + qay * qbz - qaz * qby,
+      qay * qbw + qaw * qby + qaz * qbx - qax * qbz,
+      qaz * qbw + qaw * qbz + qax * qby - qay * qbx
     );
 
 		return res;
+  }
+
+  /**
+   * @static
+   * @param {Quaternion} q 
+   * @param {Vector3} v 
+   * @returns {Quaternion}
+   */
+  static multiplyVector(q, v) {
+    return new Quaternion(
+      -q.x * v.x - q.y * v.y - q.z * v.z,
+      q.w * v.x + q.y * v.z - q.z * v.y,
+      q.w * v.y + q.z * v.x - q.x * v.z,
+      q.w * v.z + q.x * v.y - q.y * v.x
+    );
   }
 
   /**
@@ -49,9 +74,9 @@ export class Quaternion {
    */
   static toMatrix(q) {
     const m = new Matrix3x3();
-    const v = q.v;
+    const v = q.normalized().v();
     m.value = [
-      [1 - 2*v.y*v.y - 2*v.z*v.z, 2*v.x*v.y - 2*q.w*v.z, 2*v.x*v.z + 2*q.w*v.y],
+      [1 - 2*(v.y*v.y) - 2*v.z*v.z, 2*v.x*v.y - 2*q.w*v.z, 2*v.x*v.z + 2*q.w*v.y],
       [2*v.x*v.y + 2*q.w*v.z, 1 - 2*v.x*v.x - 2*v.z*v.z, 2*v.y*v.z - 2*q.w*v.x],
       [2*v.x*v.z - 2*q.w*v.y, 2*v.y*v.z + 2*q.w*v.x, 1 - 2*v.x*v.x - 2*v.y*v.y]
     ];
@@ -73,6 +98,49 @@ export class Quaternion {
     return v;
   }
 
+  /**
+   * Generates a pseudo-random quaternion.
+   * @static
+   * @returns {Quaternion}
+   */
+  static random() {
+    const u = Math.random();
+    const v = Math.random();
+    const w = Math.random();
+    return new Quaternion(
+      Math.sqrt(1-u) * Math.sin(2*Math.PI*v),
+      Math.sqrt(1-u) * Math.cos(2*Math.PI*v),
+      Math.sqrt(u) * Math.sin(2*Math.PI*w),
+      Math.sqrt(u) * Math.cos(2*Math.PI*w),
+    );
+  }
+
+  /**
+   * Spherical Linear Interpolation returns a new rotation interpolated between the two quaternions,
+   * with respect to the four-dimensional space the quaternions lie in. Enables smooth rotations
+   * between two quaternions.
+   * @param {Quaternion} q1 
+   * @param {Quaternion} q2 
+   * @param {number} t 
+   * @returns {Quaternion}
+   */
+  static slerp(q1, q2, t) {
+    const theta = Quaternion.dot(q1.normalized(), q2.normalized());
+    if (theta < 0) q2.multiplyScalar(-1);
+    const v1 = Quaternion.multiplyScalar(q1, (Math.sin(1-t)*theta) / (Math.sin(theta)));
+    const v2 = Quaternion.multiplyScalar(q2, (Math.sin(t*theta) / Math.sin(theta)));
+    return Quaternion.add(v1, v2).normalized();
+  }
+
+  /**
+   * Returns the dot product of q1 and q2.
+   * @param {Quaternion} q1 
+   * @param {Quaternion} q2 
+   */
+  static dot(q1, q2) {
+    return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
+  }
+
   /** @type {number} */
   w;
   /** @type {number} */
@@ -81,19 +149,6 @@ export class Quaternion {
   y;
   /** @type {number} */
   z;
-
-  get v() {
-    return new Vector3(this.x, this.y, this.z);
-  }
-
-  get magnitude() {
-    return Math.sqrt(this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z);
-  }
-
-  get normalized() {
-    const m = this.magnitude || 1;
-    return new Quaternion(this.w / m, this.x / m, this.y / m, this.z / m);
-  }
 
   constructor(w = 1, x = 0, y = 0, z = 0) {
     this.w = w;
@@ -107,6 +162,19 @@ export class Quaternion {
     yield this.x;
     yield this.y;
     yield this.z;
+  }
+
+  magnitude() {
+    return Math.sqrt(this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z);
+  }
+
+  normalized() {
+    const m = this.magnitude() || 1;
+    return new Quaternion(this.w / m, this.x / m, this.y / m, this.z / m);
+  }
+
+  v() {
+    return new Vector3(this.x, this.y, this.z);
   }
 
   /**
@@ -185,7 +253,7 @@ export class Quaternion {
   }
 
   normalize() {
-    const m = this.magnitude || 1;
+    const m = this.magnitude() || 1;
     this.w /= m;
     this.x /= m;
     this.y /= m;
@@ -195,5 +263,18 @@ export class Quaternion {
   /** @returns The inverse of this quaterion (w, -x, -y, -z) */
   inverse() {
     return new Quaternion(this.w, -this.x, -this.y, -this.z);
+  }
+
+  /**
+   * Returns a copy of this quaternion
+   * @returns {Quaternion}
+   */
+  getCopy() {
+    return new Quaternion(this.w, this.x, this.y, this.z);
+  }
+
+  toString(sigFigs = 3) {
+    const factor = Math.pow(10, sigFigs - 1);
+    return `(${Math.round(this.w*factor)/factor}, ${Math.round(this.x*factor)/factor}, ${Math.round(this.y*factor)/factor}, ${Math.round(this.z*factor)/factor})`
   }
 }

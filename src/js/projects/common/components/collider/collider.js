@@ -6,15 +6,15 @@ export const COMP_COLLIDER = 'Collider';
 
 /** Generic class for collider components. */
 export class ColliderComponent extends Component {
-  /** @type {?string} */
-  colliderType = null;
+  /** @type {string} */
+  colliderType;
   /** @type {Vector3} */
   offset = new Vector3();
   
-  /** @type {?BufferGeometry} */
-  geometry = null;
-  /** @type {?Mesh} */
-  colliderMesh = null;
+  /** @type {BufferGeometry} */
+  geometry;
+  /** @type {Mesh} */
+  colliderMesh;
 
   constructor() {
     super(COMP_COLLIDER);

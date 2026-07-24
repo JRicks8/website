@@ -42,7 +42,7 @@ let _kd = 9;
  * @param {import("three").Intersection} intersection
  */
 function onMouseDownRaycast(intersection) {
-  _dragComponent = _bodies.find(b => b.colliderComponent?.colliderMesh === intersection.object) || null;
+  _dragComponent = _bodies.find(b => b.colliderComponent?.colliderMesh === intersection.object) ?? null;
   startDragging(intersection);
 }
 
@@ -131,8 +131,7 @@ export const DraggableProcess = {
     }
   },
 
-  /** @param {number} dt */
-  update: (dt) => {
+  update: () => {
     if (!_dragging || !_dragComponent?.entity || !_camera || !_localDragPoint) {
       return;
     }
@@ -141,16 +140,6 @@ export const DraggableProcess = {
 
     const rotatedLocalPoint = Vector3.rotate(_localDragPoint, _dragComponent.entity.transform.orientation);
 
-    // Desired (world) position
-    DebugProcess.drawPoints({ points: [mousePos], color: new Color(0xff0000) });
-    // Local drag point translated to world position
-    DebugProcess.drawPoints({ points: [getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint)] });
-
-    DebugProcess.drawLine({ points: [
-      getWorldPosition(_dragComponent.entity.transform),
-      getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint)
-    ]});
-
     if (_draggedRigidbody?.entity) {
       const worldDragPoint = getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint);
 
@@ -158,20 +147,12 @@ export const DraggableProcess = {
       const positionError = Vector3.subtract(mousePos, worldDragPoint);
       const desiredPointVelocity = Vector3.multiply(positionError, _kp);
       const velocityError = Vector3.subtract(desiredPointVelocity, currentPointVelocity);
-      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.bodyState.mass, _kd);
+      const derivedForce = Vector3.multiply(velocityError, _draggedRigidbody.state.mass, _kd);
 
       addForceAtPosition(_draggedRigidbody, derivedForce, rotatedLocalPoint);
-      
-      DebugProcess.drawPoints({ points: [worldDragPoint], color: new Color(0x00ff00) });
-      DebugProcess.drawLine({
-        points: [
-          getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint),
-          Vector3.add(derivedForce.normalized, getWorldPosition(_dragComponent.entity.transform, rotatedLocalPoint))
-        ]
-      });
 
     } else {
-      _dragComponent.entity.transform.position.setv3(mousePos);
+      _dragComponent.entity.transform.position.copy(mousePos);
     }
   },
 

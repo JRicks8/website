@@ -1,12 +1,10 @@
-import { Color } from "three";
 import { ColliderComponent, COMP_COLLIDER } from "../components/collider/collider.js";
-import { COMP_RIGIDBODY, Restraint, RigidbodyComponent } from "../components/rigidbody.js";
+import { Restraint, RigidbodyComponent } from "../components/rigidbody.js";
 import { ComponentManager } from "../game/component-manager.js";
 import { Matrix3x3 } from "../math/matrix3x3.js";
 import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
-import { DebugProcess } from "../processes/debug-process.js";
-import { getWorldPosition } from "./transform-utils.js";
+import { BodyState } from "../physics/body-state.js";
 
 /**
  * Sets the mass of rb.  
@@ -15,7 +13,7 @@ import { getWorldPosition } from "./transform-utils.js";
  * @param {number} m 
  */
 export function setMass(rb, m) {
-  rb.bodyState.mass = m;
+  rb.state.mass = m;
   computeInertia(rb);
 }
 
@@ -28,12 +26,12 @@ export function computeInertia(rb) {
   const colliderComponent = ComponentManager.getComponent(rb.entity, COMP_COLLIDER);
   if (colliderComponent) {
     // TODO Compute inertia based on collider
-    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.bodyState.mass);
+    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.state.mass);
   } else {
-    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.bodyState.mass);
+    rb.iBody = Matrix3x3.multiplyScalar(Matrix3x3.identity(), 0.4 * rb.state.mass);
   }
-  rb.bodyState.iBodyInv = Matrix3x3.copy(rb.iBody);
-  rb.bodyState.iBodyInv.invert();
+  rb.state.iBodyInv = Matrix3x3.getCopy(rb.iBody);
+  rb.state.iBodyInv.invert();
 }
 
 /**
@@ -42,7 +40,7 @@ export function computeInertia(rb) {
  * @param {Vector3} force 
  */
 export function addLinearForce(rb, force) {
-  rb.bodyState.force.addv3(force);
+  rb.state.force.addv3(force);
 }
 
 /**
@@ -51,7 +49,7 @@ export function addLinearForce(rb, force) {
  * @param {Vector3} force 
  */
 export function addTorque(rb, force) {
-  rb.bodyState.torque.addv3(force);
+  rb.state.torque.addv3(force);
 }
 
 /**
@@ -77,10 +75,10 @@ export function addForceAtPosition(rb, force, point) {
 export function velocityAtPoint(rb, point) {
   return Vector3.add(
     Vector3.cross(
-      rb.bodyState.angularVelocity, 
+      rb.state.angularVelocity, 
       point
     ),
-    rb.bodyState.velocity
+    rb.state.velocity
   );
 }
 
@@ -111,4 +109,47 @@ export function applyLinearAxisRestraint(restraint, vector) {
  */
 export function applyRotationAxisRestraint(restraint, rotation) {
   // TODO
+}
+
+/**
+ * Returns a new BodyState that is a copy of the input BodyState
+ * @param {BodyState} s 
+ * @returns {BodyState}
+ */
+export function copyBodyState(s) {
+  return {
+    mass: s.mass,
+    iBodyInv: s.iBodyInv.getCopy(),
+    position: s.position.getCopy(),
+    orientation: s.orientation.getCopy(),
+    momentum: s.momentum.getCopy(),
+    angularMomentum: s.angularMomentum.getCopy(),
+    iInv: s.iInv.getCopy(),
+    rMatrix: s.rMatrix.getCopy(),
+    velocity: s.velocity.getCopy(),
+    angularVelocity: s.angularVelocity.getCopy(),
+    force: s.force.getCopy(),
+    torque: s.torque.getCopy()
+  };
+}
+
+/**
+ * Integrates v given a velocity and dt.
+ * @param {Vector3} v
+ * @param {Vector3} velocity
+ * @param {number} dt
+ * @returns {Vector3}
+ */
+export function integrateVector(v, velocity, dt) {
+  return Vector3.add(v, Vector3.multiply(velocity, dt));
+}
+
+/**
+ * Integrates q given an angular velocity and dt.
+ * @param {Quaternion} q
+ * @param {Vector3} angVel
+ * @param {number} dt
+ */
+export function integrateQuaternion(q, angVel, dt) {
+  return 
 }

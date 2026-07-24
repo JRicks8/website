@@ -1,4 +1,4 @@
-import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2 as ThreeV2, WebGLRenderer } from "three";
+import { BoxGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Raycaster, RingGeometry, Scene, SphereGeometry, Vector2 as ThreeV2, TubeGeometry, WebGLRenderer } from "three";
 import { resizeRenderView } from "../js/projects/common/util/three-utils.js";
 import { GameState } from "../js/projects/common/game/game-state.js";
 import { TickProcess } from "../js/projects/common/processes/tick-process.js";
@@ -20,11 +20,36 @@ import { DebugProcess } from "../js/projects/common/processes/debug-process.js";
 import { RigidbodyComponent } from "../js/projects/common/components/rigidbody.js";
 import { DraggableComponent } from "../js/projects/common/components/draggable-body.js";
 import { MeshRendererComponent } from "../js/projects/common/components/mesh-renderer.js";
-import { SphereColliderComponent } from "../js/projects/common/components/collider/sphere-collider.js";
 import { BoxColliderComponent } from "../js/projects/common/components/collider/box-collider.js";
+import { SimplexTester } from "../js/projects/common/collision/test/simplex-test.js";
+import { Quaternion } from "../js/projects/common/math/quaternion.js";
+import { Vector3 } from "../js/projects/common/math/vector3.js";
+import { SupportTester } from "../js/projects/common/collision/test/support-test.js";
+import { Matrix3x3 } from "../js/projects/common/math/matrix3x3.js";
+
+// v: 1, 1, 1
+
+// 0.7716996, -0.270596, 0.5712582, 0.0701545 ->
+// -0.37, 1.27, 1.11, -0.07   ->
+// out: 0.7604, 1.1356, -1.0516
+
+// [  0.3374849, -0.4174367,  0.8437123
+//   -0.2008839,  0.8437123,  0.4977903
+//   -0.9196464, -0.3374849,  0.2008839 ]
+// out: 0.763761, 1.14062, -1.05625
+
+const q = new Quaternion(0.7716996, -0.270596, 0.5712582, 0.0701545);
+// console.log(new Vector3(1, 1, 1).rotate(q));
+const m = new Matrix3x3();
+m.setValue([[0.3374849, -0.4174367,  0.8437123],[-0.2008839,  0.8437123,  0.4977903],[-0.9196464, -0.3374849,  0.2008839]]);
+// console.log(Matrix3x3.multiplyVector3(m, new Vector3(1,1,1)));
+// console.log(Quaternion.toMatrix(q));
+// console.log(m);
 
 // threejs init
 const camera = new PerspectiveCamera(70, 16/9, 0.01, 100);
+camera.layers.enable(0);
+camera.layers.enable(1);
 GameState.mainCamera = camera;
 
 const scene = new Scene();
@@ -38,17 +63,50 @@ document.body.appendChild(renderer.domElement);
 InputListener.attachListeners();
 
 EventDispatcher.listenToEvent('focus', () => {
-  GameState.hardPaused = false;
+  GameState.setHardPaused(false);
   TickProcess.start();
 });
 
 EventDispatcher.listenToEvent('blur', () => {
-  GameState.hardPaused = true;
+  GameState.setHardPaused(true);
 });
 
+const geometries = [
+  new BoxGeometry(),
+  new SphereGeometry(0.5),
+  new ConeGeometry(0.5),
+  new CapsuleGeometry(0.5),
+  new CylinderGeometry(0.5, 0.5)
+];
+const supportTestShape = { geometry: new BoxGeometry(1, 1, 1, 1, 1, 1), localTransform: { orientation: new Quaternion(), position: new Vector3(0, 0, 0) } };
+const simplexTestShapeA = { geometry: new BoxGeometry(1, 1, 1, 1, 1, 1), localTransform: { orientation: new Quaternion(), position: new Vector3(0, 0, 0) } };
+const simplexTestShapeB = { geometry: new BoxGeometry(1, 1, 1, 1, 1, 1), localTransform: { orientation: new Quaternion(), position: new Vector3(0, 0, 0) } };
+SupportTester.shape = supportTestShape;
+SimplexTester.shapeA = simplexTestShapeA;
+SimplexTester.shapeB = simplexTestShapeB;
+let u = 1, i = 1, o = 1;
 EventDispatcher.listenToEvent('keydown', (/**@type {KeyboardEvent}*/ keyEvent) => {
   if (keyEvent.key === 'Escape') {
-    GameState.paused = !GameState.paused;
+    GameState.setPaused(!GameState.paused);
+  } else if (keyEvent.key === 'u') {
+    simplexTestShapeA.geometry = geometries[u++];
+    if (u === geometries.length) u -= geometries.length;
+  } else if (keyEvent.key === 'i') {
+    simplexTestShapeB.geometry = geometries[i++];
+    if (i === geometries.length) i -= geometries.length;
+  } else if (keyEvent.key === 'o') {
+    supportTestShape.geometry = geometries[o++];
+    if (o === geometries.length) o -= geometries.length;
+  } else if (keyEvent.key === 'j') {
+    if (SimplexTester.nextStage === 0) {
+      SimplexTester.shapeA.localTransform.orientation = Quaternion.random().normalized();
+      SimplexTester.shapeA.localTransform.position = new Vector3(0.45, 0, 0);
+      SimplexTester.shapeB.localTransform.orientation = Quaternion.random().normalized();
+      SimplexTester.shapeB.localTransform.position = new Vector3(-0.45, 0, 0);
+    }
+    SimplexTester.runSimplexTest();
+  } else if (keyEvent.key === 'k') {
+    SupportTester.runSupportTest();
   }
 });
 
@@ -120,23 +178,25 @@ Registry.register(player, player.id);
 
 // Game loop -------------------------------------------------
 TickProcess.setCallback((dt) => {
-  ScriptProcess.earlyUpdate(dt);
+  GameState.dt = GameState.paused ? 0 : dt;
 
-  PlayerProcess.update(playerController, dt);
+  ScriptProcess.earlyUpdate(GameState.dt);
 
-  DraggableProcess.update(dt);
+  PlayerProcess.update(playerController, dt); // Player process ignores game pause state
 
-  if (!GameState.paused) PhysicsProcess.step(dt);
+  DraggableProcess.update();
+
+  PhysicsProcess.step(GameState.dt);
   PhysicsProcess.update();
 
-  ScriptProcess.update(dt);
+  ScriptProcess.update(GameState.dt);
 
   MeshRenderingProcess.update();
 
-  if (!GameState.paused) DebugProcess.beforeRender();
-  ScriptProcess.lateUpdate(dt);
+  DebugProcess.beforeRender();
+  ScriptProcess.lateUpdate(GameState.dt);
   renderer.render(scene, camera);
-  if (!GameState.paused) DebugProcess.afterRender(dt);
+  DebugProcess.afterRender(GameState.dt);
 });
 TickProcess.setTickDuration(16);
 TickProcess.start();

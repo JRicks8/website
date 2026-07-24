@@ -1,8 +1,4 @@
-import { Box3 } from "three";
-import { RigidbodyComponent } from "../components/rigidbody.js";
-import { Vector3 } from "../math/vector3.js";
-import { DebugProcess } from "../processes/debug-process.js";
-import { getWorldPosition } from "../util/transform-utils.js";
+/** @import {BodyInfo} from "../processes/physics-process.js" */
 
 /**
  * Extremely simple and inefficient check, where every object 
@@ -13,48 +9,21 @@ import { getWorldPosition } from "../util/transform-utils.js";
 export class BroadPhaseSolver {
   /**
    * Returns pairs of bodies that may be colliding.
-   * @param {RigidbodyComponent[]} bodies
-   * @returns {{ r1: RigidbodyComponent, r2: RigidbodyComponent }[]}
+   * @param {BodyInfo[]} bodies
+   * @returns {{ b1: BodyInfo, b2: BodyInfo }[]}
    */
   solve(bodies) {
     const res = [];
     for (let i = 0; i < bodies.length - 1; i++) {
       for (let j = bodies.length - 1; j > i; j--) {
-        const m1 = bodies[i].colliderComponent?.colliderMesh;
-        const m2 = bodies[j].colliderComponent?.colliderMesh;
-        if (m1 && m2) {
-          const bb1 = new Box3().setFromObject(m1);
-          const bb2 = new Box3().setFromObject(m2);
-          if (bb1.intersectsBox(bb2)) {
-            res.push({ r1: bodies[i], r2: bodies[j] });
+        const g1 = bodies[i].geometry;
+        const g2 = bodies[j].geometry;
+        if (g1 && g2) {
+          g1.computeBoundingBox();
+          g2.computeBoundingBox();
+          if (g1.boundingBox.intersectsBox(g2.boundingBox)) {
+            res.push({ b1: bodies[i], b2: bodies[j] });
           }
-
-          DebugProcess.drawPoints({
-            points: [
-              bb1.min,
-              bb1.max,
-              new Vector3(bb1.min.x, bb1.max.y, bb1.min.z),
-              new Vector3(bb1.max.x, bb1.min.y, bb1.min.z),
-              new Vector3(bb1.min.x, bb1.min.y, bb1.max.z),
-              new Vector3(bb1.max.x, bb1.max.y, bb1.min.z),
-              new Vector3(bb1.max.x, bb1.min.y, bb1.max.z),
-              new Vector3(bb1.min.x, bb1.max.y, bb1.max.z),
-            ],
-            size: 10
-          });
-          DebugProcess.drawPoints({
-            points: [
-              bb2.min,
-              bb2.max,
-              new Vector3(bb2.min.x, bb2.max.y, bb2.min.z),
-              new Vector3(bb2.max.x, bb2.min.y, bb2.min.z),
-              new Vector3(bb2.min.x, bb2.min.y, bb2.max.z),
-              new Vector3(bb2.max.x, bb2.max.y, bb2.min.z),
-              new Vector3(bb2.max.x, bb2.min.y, bb2.max.z),
-              new Vector3(bb2.min.x, bb2.max.y, bb2.max.z),
-            ],
-            size: 10
-          });
         }
       }
     }

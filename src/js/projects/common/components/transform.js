@@ -2,6 +2,13 @@ import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
 import { Component } from "./class/component.js";
 
+/**
+ * Supports representing position and orientation, but not scale
+ * @typedef {Object} Transform
+ * @property {Quaternion} orientation
+ * @property {Vector3} position
+ */
+
 export const COMP_TRANSFORM = 'Transform';
 
 export class TransformComponent extends Component {

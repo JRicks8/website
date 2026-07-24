@@ -10,10 +10,15 @@
 
 <body id="body">
   <div>
-    <pre>    escape : pause toggle
+    <pre class="top-section left">    escape : pause toggle
       wasd : move
 rmb + drag : look
 lmb + drag : drag objects</pre>
+    <section class="top-section middle">
+      <pre id="hardPaused" style="color: red" class="hidden">HARD PAUSED</pre>
+      <pre id="paused" class="hidden">PAUSED</pre>
+    </section>
+    <pre class="top-section right" id="debugLog"></pre>
   </div>
 
   <script type="module" src="./physics.js"></script>

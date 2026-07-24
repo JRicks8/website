@@ -71,7 +71,7 @@ export const PlayerProcess = {
 
     const forward = new ThreeV3();
     controller.camera.getWorldDirection(forward);
-    const right = new ThreeV3(forward.x, forward.y, forward.z).cross(Vector3.up).normalize();
+    const right = new ThreeV3(forward.x, forward.y, forward.z).cross(Vector3.up()).normalize();
     
     if (controller.canRotate && _rmb) {
       const dx = _lastMousePosition.x - GameState.mousePosition.x;

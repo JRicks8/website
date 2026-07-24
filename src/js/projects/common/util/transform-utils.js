@@ -1,14 +1,19 @@
 import { TransformComponent } from "../components/transform.js";
+import { Matrix3x3 } from "../math/matrix3x3.js";
+import { Quaternion } from "../math/quaternion.js";
 import { Vector3 } from "../math/vector3.js";
+
+/** @import {Vector3Like} from "../math/vector3.js" */
+/** @import {Transform} from "../components/transform.js" */
 
 /**
  * Calculates the world position of v local to the given transform.
  * The world position is calculated irrespective of orientation (TODO)
  * @param {TransformComponent} transform 
- * @param {import("../math/vector3.js").Vector3Like} [v] 
+ * @param {Vector3} [v] 
  */
-export function getWorldPosition(transform, v = new Vector3) {
-  const res = new Vector3().copy(v).addv3(transform.position);
+export function getWorldPosition(transform, v = new Vector3()) {
+  const res = v.getCopy().addv3(transform.position);
   let next = transform;
   while (transform.parent) {
     next = transform.parent;
@@ -19,12 +24,22 @@ export function getWorldPosition(transform, v = new Vector3) {
 
 /**
  * Calculates the position local to the given transform.
- * @param {import("../math/vector3.js").Vector3Like} v 
- * @param {TransformComponent} transform 
+ * @param {Vector3Like} v 
+ * @param {{ position: Vector3, orientation: Quaternion }} transform 
  * @returns {Vector3}
  */
-export function getLocalPosition(v, transform) {
-  // TODO
+export function applyTransform(v, transform) {
+  return Vector3.rotate(v, transform.orientation).addv3(transform.position);
+}
+
+/**
+ * @param {Vector3Like} v 
+ * @param {Vector3} position 
+ * @param {Matrix3x3} orientation 
+ * @returns 
+ */
+export function applyTransform2(v, position, orientation) {
+  return Matrix3x3.multiplyVector3(orientation, v).addv3(position);
 }
 
 /**
@@ -33,5 +48,16 @@ export function getLocalPosition(v, transform) {
  * @returns {Vector3}
  */
 export function getWorldForward(transform) {
-  return Vector3.forward.rotate(transform.orientation);
+  return Vector3.forward().rotate(transform.orientation);
+}
+
+/**
+ * @param {Transform} transform 
+ * @returns {Transform}
+ */
+export function getTransformCopy(transform) {
+  return {
+    orientation: transform.orientation.getCopy(),
+    position: transform.position.getCopy()
+  };
 }

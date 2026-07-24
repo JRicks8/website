@@ -1,6 +1,8 @@
 import { clamp } from "./common.js";
 import { Vector3 } from "./vector3.js";
 
+/** @import {Vector3Like} from "./vector3.js" */
+
 export class Matrix3x3 {
   /**
    * @static
@@ -31,7 +33,7 @@ export class Matrix3x3 {
 
   /**
    * @param {Matrix3x3} m 
-   * @param {Vector3} v 
+   * @param {Vector3Like} v 
    * @returns {Vector3}
    */
   static multiplyVector3(m, v) {
@@ -93,7 +95,7 @@ export class Matrix3x3 {
    * @param {Matrix3x3} m 
    * @returns {Matrix3x3} 
    */
-  static copy(m) {
+  static getCopy(m) {
     const newMatrix = new Matrix3x3();
     for (let i = 0; i < 3; i++)
       for (let j = 0; j < 3; j++)
@@ -165,5 +167,17 @@ export class Matrix3x3 {
         [z, this.value[2][0] * this.value[0][1] - this.value[0][0] * this.value[2][1], this.value[0][0] * this.value[1][1] - this.value[1][0] * this.value[0][1]]
       ].map(r => r.map(v => v /= det));
     }
+  }
+
+  /**
+   * Returns a copy of this matrix.
+   * @returns {Matrix3x3}
+   */
+  getCopy() {
+    const m = new Matrix3x3();
+    for (let i = 0; i < 3; i++)
+      for (let j = 0; j < 3; j++)
+        m.value[i][j] = this.value[i][j];
+    return m;
   }
 }

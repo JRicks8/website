@@ -4,24 +4,28 @@ import { BodyState } from "../physics/body-state.js";
 import { ColliderComponent } from "./collider/collider.js";
 import { Component } from "./class/component.js";
 
+/**
+ * @typedef {Object} BodyConfig
+ * @property {Restraint[]} [restraints]
+ * @property {boolean} [noCollide] Ignored during collision checks
+ * @property {boolean} [noForces] True if no forces should act on this object (velocities can still be set)
+ */
+
 export const COMP_RIGIDBODY = 'Rigidbody';
 
 export class RigidbodyComponent extends Component {
   /** @type {number} */
   id = -1;
 
-  /** @type {ColliderComponent | undefined} */
+  /** @type {ColliderComponent} */
   colliderComponent;
-  bodyState = new BodyState();
-  /** @type {Restraint[]} */
-  restraints = [];
+  
+  state = new BodyState();
+
+  /** @type {BodyConfig} */
+  bodyConfig = {};
 
   iBody = new Matrix3x3();
-
-  /** Ignored during collision checks */
-  noCollide = false;
-  /** True if no forces should act on this object (velocities can still be set) */
-  noForces = false;
 
   constructor() {
     super(COMP_RIGIDBODY);

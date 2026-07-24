@@ -10,13 +10,13 @@ import { Vector2 } from "./vector2.js";
  */
 
 export class Vector3 {
-  static get one() { return new Vector3(1, 1, 1); }
-  static get up() { return new Vector3(0, 1, 0); }
-  static get down() { return new Vector3(0, -1, 0); }
-  static get right() { return new Vector3(1, 0, 0); }
-  static get left() { return new Vector3(-1, 0, 0); }
-  static get forward() { return new Vector3(0, 0, -1); }
-  static get back() { return new Vector3(0, 0, 1); }
+  static one() { return new Vector3(1, 1, 1); }
+  static up() { return new Vector3(0, 1, 0); }
+  static down() { return new Vector3(0, -1, 0); }
+  static right() { return new Vector3(1, 0, 0); }
+  static left() { return new Vector3(-1, 0, 0); }
+  static forward() { return new Vector3(0, 0, -1); }
+  static back() { return new Vector3(0, 0, 1); }
 
   /**
    * @static
@@ -91,6 +91,18 @@ export class Vector3 {
 
   /**
    * @static
+   * @param {Vector3Like} v1 
+   * @param {Vector3Like} v2 
+   * @param {Vector3Like} v3 
+   * @param {Vector3Like} v4 
+   * @returns {Vector3} A vector where (dot(v1, v2), dot(v1, v3), dot(v1, v4))
+   */
+  static dot3(v1, v2, v3, v4) {
+    return new Vector3(Vector3.dot(v1, v2), Vector3.dot(v1, v3), Vector3.dot(v1, v4));
+  }
+
+  /**
+   * @static
    * @param {Vector3Like} v1
    * @param {Vector3Like} v2
    * @returns {Vector3}
@@ -101,6 +113,17 @@ export class Vector3 {
       v1.z * v2.x - v1.x * v2.z,
       v1.x * v2.y - v1.y * v2.x
     );
+  }
+
+  /**
+   * @static
+   * @param {*} v1 
+   * @param {*} v2 
+   * @param {*} v3 
+   * @returns {Vector3} The result of [ (v1 X v2) X v3 ]
+   */
+  static tripleCross(v1, v2, v3) {
+    return Vector3.cross(Vector3.cross(v1, v2), v3);
   }
 
   /**
@@ -116,15 +139,16 @@ export class Vector3 {
   }
 
   /**
-   * Rotates v by the quaternion q and returns a new Vector3 with the result, normalized.
+   * Rotates v by the quaternion q and returns a new Vector3 with the result
    * @see https://math.stackexchange.com/questions/40164/how-do-you-rotate-a-vector-by-a-unit-quaternion
    * @param {Vector3Like} v
    * @param {Quaternion} q 
    * @returns {Vector3}
    */
   static rotate(v, q) {
+    q.normalize();
     return Quaternion.multiplyQuaternion(q, new Quaternion(0, v.x, v.y, v.z))
-      .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v;
+      .multiplyQuaternion(new Quaternion(q.w, -q.x, -q.y, -q.z)).v();
   }
 
   /**
@@ -138,6 +162,15 @@ export class Vector3 {
       v2,
       Vector3.dot(v1, v2) / v2.sqrMagnitude
     );
+  }
+
+  /**
+   * @param {Vector3} v1 
+   * @param {Vector3} v2 
+   * @returns {boolean} True if the two vectors have equivalent components
+   */
+  static equals(v1, v2) {
+    return v1.x === v2.x && v1.y === v2.y && v1.z === v2.z;
   }
 
   /** @type {number} */
@@ -223,21 +256,20 @@ export class Vector3 {
   }
 
   /**
+   * Returns a copy of this vector
+   * @return {Vector3}
+   */
+  getCopy() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+
+  /**
    * 
    * @param {Vector3Like} v 
    * @returns True if the components of v are equal to the components of this vector
    */
   equals(v) {
     return this.x === v.x && this.y === v.y && this.z === v.z;
-  }
-
-  /**
-   * @param {Vector3Like} v 
-   */
-  setv3(v) {
-    this.x = v.x;
-    this.y = v.y;
-    this.z = v.z;
   }
 
   /**
@@ -257,20 +289,24 @@ export class Vector3 {
   /**
    * Subtracts the components of v from this vector.
    * @param {Vector3Like} v 
+   * @returns {this}
    */
   subtractv3(v) {
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;
+    return this;
   }
 
   /**
    * Adds the components of v to this vector.
    * @param {Vector2} v 
+   * @returns {this}
    */
   addv2(v) {
     this.x += v.x;
     this.y += v.y;
+    return this;
   }
 
   /**
