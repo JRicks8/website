@@ -100,9 +100,10 @@ EventDispatcher.listenToEvent('keydown', (/**@type {KeyboardEvent}*/ keyEvent) =
   } else if (keyEvent.key === 'j') {
     if (SimplexTester.nextStage === 0) {
       SimplexTester.shapeA.localTransform.orientation = Quaternion.random().normalized();
-      SimplexTester.shapeA.localTransform.position = new Vector3(0.45, 0, 0);
+      const offset = 1.2 * Math.random();
+      SimplexTester.shapeA.localTransform.position = new Vector3(offset, 0, 0);
       SimplexTester.shapeB.localTransform.orientation = Quaternion.random().normalized();
-      SimplexTester.shapeB.localTransform.position = new Vector3(-0.45, 0, 0);
+      SimplexTester.shapeB.localTransform.position = new Vector3(-0.5, 0, 0);
     }
     SimplexTester.runSimplexTest();
   } else if (keyEvent.key === 'k') {
