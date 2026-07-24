@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
   "devDependencies": {
     "@azure/static-web-apps-cli": "^2.0.9",
     "vite": "^7.2.6",
